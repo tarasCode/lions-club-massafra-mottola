@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -14,7 +14,7 @@ interface NewsForm {
   published: boolean;
 }
 
-export default function NewsForm() {
+function NewsFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('id');
@@ -35,13 +35,7 @@ export default function NewsForm() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    if (editId) {
-      fetchNews(editId);
-    }
-  }, [editId]);
-
-  const fetchNews = async (id: string) => {
+  const fetchNews = useCallback(async (id: string) => {
     try {
       const { data, error } = await supabase
         .from('news')
@@ -67,7 +61,13 @@ export default function NewsForm() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (editId) {
+      fetchNews(editId);
+    }
+  }, [editId, fetchNews]);
 
   const generateSlug = (title: string) => {
     return title
@@ -382,5 +382,20 @@ export default function NewsForm() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewsForm() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Caricamento...</p>
+        </div>
+      </div>
+    }>
+      <NewsFormContent />
+    </Suspense>
   );
 }

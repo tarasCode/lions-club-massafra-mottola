@@ -1,10 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800;900&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Lions Club Brand Colors */
+/* Lions Club Brand Colors & Emil Kowalski Easing Curves */
 :root {
   --lions-navy: #003366;
   --lions-gold: #C8A951;
@@ -12,6 +12,11 @@
   --lions-white: #FFFFFF;
   --lions-light-gray: #F8F9FA;
   --lions-dark-text: #1a1a2e;
+
+  /* Emil Kowalski Custom Easing Curves */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-soft: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * {
@@ -29,35 +34,38 @@ body {
   background-color: var(--lions-white);
   color: var(--lions-dark-text);
   line-height: 1.6;
+  font-weight: 400;
 }
 
 /* Typography */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Playfair Display', serif;
-  font-weight: 700;
-  line-height: 1.2;
+  font-weight: 800;
+  line-height: 1.15;
   color: var(--lions-navy);
+  letter-spacing: -0.01em;
 }
 
 h1 {
-  font-size: 3rem;
+  font-size: 3.5rem;
+  font-weight: 900;
   letter-spacing: -0.02em;
 }
 
 @media (max-width: 768px) {
   h1 {
-    font-size: 2rem;
+    font-size: 2.25rem;
   }
 }
 
 h2 {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   margin-bottom: 1.5rem;
 }
 
 @media (max-width: 768px) {
   h2 {
-    font-size: 1.75rem;
+    font-size: 1.875rem;
   }
 }
 
@@ -69,17 +77,14 @@ h3 {
 p {
   font-size: 1rem;
   margin-bottom: 1rem;
-  color: #555;
-}
-
-/* Smooth transitions */
-a, button {
-  transition: all 0.3s ease;
+  color: #666;
+  font-weight: 400;
 }
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -88,7 +93,7 @@ a, button {
 
 ::-webkit-scrollbar-thumb {
   background: var(--lions-gold);
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -101,11 +106,14 @@ a, button {
   color: var(--lions-navy);
 }
 
-/* Animation classes */
+/* ============================================
+   Emil Kowalski Animation Keyframes
+   ============================================ */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(24px);
   }
   to {
     opacity: 1;
@@ -116,7 +124,7 @@ a, button {
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(-30px);
+    transform: translateX(-24px);
   }
   to {
     opacity: 1;
@@ -127,7 +135,7 @@ a, button {
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(30px);
+    transform: translateX(24px);
   }
   to {
     opacity: 1;
@@ -135,42 +143,81 @@ a, button {
   }
 }
 
-@keyframes pulse-soft {
-  0%, 100% {
-    opacity: 1;
+@keyframes scaleInUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
   }
-  50% {
-    opacity: 0.8;
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 
+@keyframes countUp {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scrollArrow {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+/* Animation utility classes */
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.6s var(--ease-out) forwards;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.6s ease-out forwards;
+  animation: slideInLeft 0.6s var(--ease-out) forwards;
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.6s ease-out forwards;
+  animation: slideInRight 0.6s var(--ease-out) forwards;
 }
 
-.animate-pulse-soft {
-  animation: pulse-soft 3s ease-in-out infinite;
+.animate-scale-in-up {
+  animation: scaleInUp 0.5s var(--ease-out) forwards;
 }
 
-/* Stagger animations for lists */
+.animate-scroll-arrow {
+  animation: scrollArrow 2.5s var(--ease-in-out) infinite;
+}
+
+/* Stagger animations - Emil style (30-80ms delays) */
 .stagger > * {
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.6s var(--ease-out) forwards;
+  opacity: 0;
 }
 
-.stagger > *:nth-child(1) { animation-delay: 0.1s; }
-.stagger > *:nth-child(2) { animation-delay: 0.2s; }
-.stagger > *:nth-child(3) { animation-delay: 0.3s; }
-.stagger > *:nth-child(4) { animation-delay: 0.4s; }
-.stagger > *:nth-child(5) { animation-delay: 0.5s; }
-.stagger > *:nth-child(6) { animation-delay: 0.6s; }
+.stagger > *:nth-child(1) { animation-delay: 0.03s; }
+.stagger > *:nth-child(2) { animation-delay: 0.06s; }
+.stagger > *:nth-child(3) { animation-delay: 0.09s; }
+.stagger > *:nth-child(4) { animation-delay: 0.12s; }
+.stagger > *:nth-child(5) { animation-delay: 0.15s; }
+.stagger > *:nth-child(6) { animation-delay: 0.18s; }
+.stagger > *:nth-child(7) { animation-delay: 0.21s; }
+.stagger > *:nth-child(8) { animation-delay: 0.24s; }
 
 /* Container & sections */
 .container {
@@ -179,66 +226,119 @@ a, button {
   padding: 0 1.5rem;
 }
 
-/* Buttons */
+/* ============================================
+   Emil Kowalski Button Styles
+   ============================================ */
+
 .btn {
-  display: inline-block;
-  padding: 0.75rem 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.875rem 2rem;
   border-radius: 0.5rem;
   font-weight: 600;
+  font-size: 1rem;
   text-decoration: none;
   cursor: pointer;
   border: none;
-  transition: all 0.3s ease;
+  transition: background-color 150ms var(--ease-out),
+              color 150ms var(--ease-out),
+              transform 150ms var(--ease-out),
+              box-shadow 150ms var(--ease-out);
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn {
+    transition: background-color 150ms var(--ease-out),
+                color 150ms var(--ease-out),
+                transform 200ms var(--ease-out),
+                box-shadow 200ms var(--ease-out);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
 }
 
 .btn-primary {
   background-color: var(--lions-gold);
   color: var(--lions-navy);
+  font-weight: 700;
 }
 
-.btn-primary:hover {
-  background-color: #B3943E;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(200, 169, 81, 0.2);
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover {
+    background-color: #B3943E;
+  }
 }
 
 .btn-secondary {
   background-color: var(--lions-navy);
   color: var(--lions-white);
+  font-weight: 700;
 }
 
-.btn-secondary:hover {
-  background-color: #002244;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0, 51, 102, 0.2);
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover {
+    background-color: #002244;
+  }
 }
 
 .btn-outline {
   background-color: transparent;
-  color: var(--lions-navy);
-  border: 2px solid var(--lions-navy);
-}
-
-.btn-outline:hover {
-  background-color: var(--lions-navy);
   color: var(--lions-white);
+  border: 2px solid var(--lions-white);
 }
 
-/* Cards */
+@media (hover: hover) and (pointer: fine) {
+  .btn-outline:hover {
+    background-color: var(--lions-white);
+    color: var(--lions-navy);
+  }
+}
+
+/* ============================================
+   Emil Kowalski Card Styles
+   ============================================ */
+
 .card {
   background: var(--lions-white);
   border-radius: 0.75rem;
-  padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  transition: all 0.3s ease;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: box-shadow 200ms var(--ease-out),
+              transform 200ms var(--ease-out);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.card:hover {
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  transform: translateY(-4px);
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+  }
 }
 
-/* Section spacing */
+.card-lift {
+  transition: transform 200ms var(--ease-out),
+              box-shadow 200ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-lift:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* ============================================
+   Hero & Section Styles
+   ============================================ */
+
 .section-padding {
   padding: 5rem 0;
 }
@@ -249,23 +349,7 @@ a, button {
   }
 }
 
-/* Gradient overlay */
-.gradient-overlay {
-  position: relative;
-}
-
-.gradient-overlay::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 51, 102, 0.8) 0%, rgba(200, 169, 81, 0.4) 100%);
-  z-index: 1;
-}
-
-/* Hero section */
+/* Hero section with layered gradient background */
 .hero {
   position: relative;
   min-height: 100vh;
@@ -273,31 +357,136 @@ a, button {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  background: linear-gradient(135deg, #003366 0%, #1a4d7a 50%, #003366 100%);
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 20% 50%, rgba(200, 169, 81, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(200, 169, 81, 0.1) 0%, transparent 50%);
+  z-index: 1;
 }
 
 .hero::after {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, rgba(0, 51, 102, 0.85) 0%, rgba(0, 51, 102, 0.4) 100%);
-  z-index: 1;
+  inset: 0;
+  background:
+    linear-gradient(45deg, transparent 30%, rgba(200, 169, 81, 0.05) 50%, transparent 70%),
+    linear-gradient(-45deg, transparent 30%, rgba(200, 169, 81, 0.03) 50%, transparent 70%);
+  z-index: 2;
+  pointer-events: none;
 }
 
 .hero-content {
   position: relative;
-  z-index: 2;
+  z-index: 10;
   text-align: center;
   color: var(--lions-white);
-  max-width: 800px;
+  max-width: 900px;
+  padding: 0 1.5rem;
 }
 
-/* Border accent */
-.border-accent {
-  border-bottom: 3px solid var(--lions-gold);
-  padding-bottom: 0.5rem;
+.hero-emblem {
+  display: inline-block;
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, var(--lions-gold) 0%, #B3943E 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  font-weight: 900;
+  color: var(--lions-navy);
+  box-shadow: 0 12px 32px rgba(200, 169, 81, 0.25),
+              inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  margin-bottom: 2rem;
+}
+
+/* Scroll indicator */
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--lions-white);
+  opacity: 0.8;
+}
+
+.scroll-indicator svg {
+  animation: scrollArrow 2.5s var(--ease-in-out) infinite;
+  width: 24px;
+  height: 24px;
+}
+
+/* Section backgrounds */
+.bg-alt {
+  background-color: var(--lions-light-gray);
+}
+
+/* Counter animation for stats */
+.counter {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--lions-gold);
+  font-family: 'Playfair Display', serif;
+}
+
+/* Glass morphism effect for header */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(200, 169, 81, 0.2);
+}
+
+/* Divider accent */
+.accent-divider {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--lions-gold) 0%, #B3943E 100%);
+  border-radius: 2px;
+  margin: 0 auto 2rem;
+}
+
+/* Icon hover effect */
+.icon-hover {
+  transition: transform 200ms var(--ease-out),
+              color 200ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .icon-hover:hover {
+    transform: scale(1.15) rotate(-5deg);
+  }
+}
+
+/* Smooth link transitions */
+a {
+  transition: color 150ms var(--ease-out);
+}
+
+/* Service card border accent */
+.card-border-accent {
+  border-left: 3px solid var(--lions-gold);
+  transition: border-left 150ms var(--ease-out),
+              padding-left 150ms var(--ease-out);
+  padding-left: 1.75rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card-border-accent:hover {
+    border-left: 6px solid var(--lions-gold);
+    padding-left: 1.5rem;
+  }
 }
 
 @layer utilities {

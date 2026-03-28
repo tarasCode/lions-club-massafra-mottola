@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import {
@@ -32,19 +32,13 @@ export default function NewsPage() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchNews();
-  }, []);
-
-  const fetchNews = async () => {
+  const fetchNews = useCallback(async () => {
     try {
       setLoading(true);
-      let query = supabase
+      const { data, error } = await supabase
         .from('news')
         .select('id, title, excerpt, published, published_at, created_at')
         .order('created_at', { ascending: false });
-
-      const { data, error } = await query;
 
       if (error) throw error;
 
@@ -54,7 +48,11 @@ export default function NewsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchNews();
+  }, [fetchNews]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('Sei sicuro di voler eliminare questa notizia?')) return;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import {
   Plus,
@@ -30,8 +30,10 @@ interface Document {
 }
 
 interface DocumentFolder {
+  id: string;
   year: number;
   categories: {
+    id: string;
     category: Category;
     documents: Document[];
   }[];
@@ -48,11 +50,7 @@ export default function DocumentsPage() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchDocuments();
-  }, []);
-
-  const fetchDocuments = async () => {
+  const fetchDocuments = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -85,6 +83,7 @@ export default function DocumentsPage() {
       folderData?.forEach(folder => {
         if (!foldersByYear.has(folder.year)) {
           foldersByYear.set(folder.year, {
+            id: `year-${folder.year}`,
             year: folder.year,
             categories: [],
           });
@@ -97,6 +96,7 @@ export default function DocumentsPage() {
           );
 
           foldersByYear.get(folder.year)?.categories.push({
+            id: folder.id,
             category: categoryData,
             documents: categoryDocs,
           });
@@ -109,12 +109,14 @@ export default function DocumentsPage() {
           const year = new Date().getFullYear();
           if (!foldersByYear.has(year)) {
             foldersByYear.set(year, {
+              id: `year-${year}`,
               year,
               categories: [],
             });
           }
 
           foldersByYear.get(year)?.categories.push({
+            id: `cat-${cat.id}`,
             category: cat,
             documents: [],
           });
@@ -131,7 +133,11 @@ export default function DocumentsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
 
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -143,15 +149,15 @@ export default function DocumentsPage() {
     setExpandedFolders(newExpanded);
   };
 
-  const handleUploadDocument = async (
+  const handleUploadDocument = useCallback(async (
     e: React.ChangeEvent<HTMLInputElement>,
-    folderId: string
+    folderIdOrCatId: string
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     try {
-      setUploadingTo(folderId);
+      setUploadingTo(folderIdOrCatId);
 
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}_${file.name}`;
@@ -182,7 +188,7 @@ export default function DocumentsPage() {
           file_url: publicUrl,
           file_type: fileExt?.toUpperCase() || 'FILE',
           file_size: file.size,
-          folder_id: folderId,
+          folder_id: folderIdOrCatId,
           uploaded_by: user.id,
         },
       ]);
@@ -197,9 +203,9 @@ export default function DocumentsPage() {
     } finally {
       setUploadingTo(null);
     }
-  };
+  }, [supabase, fetchDocuments]);
 
-  const handleDeleteDocument = async (docId: string) => {
+  const handleDeleteDocument = useCallback(async (docId: string) => {
     if (!confirm('Sei sicuro di voler eliminare questo documento?')) return;
 
     try {
@@ -219,7 +225,7 @@ export default function DocumentsPage() {
     } finally {
       setDeleting(null);
     }
-  };
+  }, [supabase, fetchDocuments]);
 
   const handleAddYear = async () => {
     try {

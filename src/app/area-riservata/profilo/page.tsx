@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { User, Lock, Mail, CheckCircle } from 'lucide-react';
 
@@ -37,11 +37,7 @@ export default function ProfilePage() {
 
   const supabase = createClient();
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const {
         data: { user },
@@ -55,13 +51,13 @@ export default function ProfilePage() {
       }));
 
       // Get profile data
-      const { data: profileData } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
         .select('full_name')
         .eq('id', user.id)
         .single();
 
-      if (profileData) {
+      if (!error && profileData) {
         setProfile(prev => ({
           ...prev,
           full_name: profileData.full_name || '',
@@ -72,7 +68,11 @@ export default function ProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleSaveProfile = async () => {
     if (!profile.full_name.trim()) {

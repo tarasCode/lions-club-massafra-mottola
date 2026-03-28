@@ -1,177 +1,158 @@
-import { Lock } from 'lucide-react';
+'use client';
+
+import { Lock, Newspaper, Archive, User } from 'lucide-react';
 import Link from 'next/link';
+import { useEffect, useState, useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
+
+interface DashboardStats {
+  newsCount: number;
+  documentCount: number;
+}
 
 export default function AreaRiservata() {
+  const [stats, setStats] = useState<DashboardStats>({
+    newsCount: 0,
+    documentCount: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  const supabase = createClient();
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const { count: newsCount } = await supabase
+        .from('news')
+        .select('*', { count: 'exact', head: true });
+
+      const { count: docCount } = await supabase
+        .from('documents')
+        .select('*', { count: 'exact', head: true });
+
+      setStats({
+        newsCount: newsCount || 0,
+        documentCount: docCount || 0,
+      });
+    } catch (error) {
+      console.error('Errore nel caricamento delle statistiche:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
   return (
     <>
       {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-lions-navy to-lions-navy/80 text-white py-16">
-        <div className="container max-w-7xl mx-auto px-4">
-          <div className="flex items-center gap-4 mb-4">
-            <Lock size={32} className="text-lions-gold" />
-            <h1 className="text-5xl font-bold font-serif">Area Riservata</h1>
+      <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12 mb-8 rounded-lg">
+        <div className="px-6">
+          <div className="flex items-center gap-4 mb-2">
+            <Lock size={28} className="text-yellow-400" />
+            <h1 className="text-4xl font-bold">Dashboard Area Riservata</h1>
           </div>
-          <p className="text-xl text-lions-light-gold">
-            Accesso riservato ai soci del Lions Club
+          <p className="text-lg text-blue-100">
+            Benvenuto nella sezione amministrativa
           </p>
         </div>
       </section>
 
-      {/* Login Section */}
-      <section className="section-padding bg-white">
-        <div className="container max-w-2xl mx-auto px-4">
-          <div className="card shadow-lions-lg">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 rounded-full bg-lions-gold/20 flex items-center justify-center mx-auto mb-4">
-                <Lock className="w-8 h-8 text-lions-gold" />
+      {/* Stats Section */}
+      {!loading && (
+        <section className="mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* News Stats */}
+            <Link href="/area-riservata/news" className="block">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm">Notizie</p>
+                    <p className="text-4xl font-bold text-blue-600">{stats.newsCount}</p>
+                  </div>
+                  <div className="p-4 bg-blue-100 rounded-lg">
+                    <Newspaper size={32} className="text-blue-600" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-4">Clicca per gestire</p>
               </div>
-              <h2 className="text-3xl font-bold text-lions-navy mb-2 font-serif">
-                Login Richiesto
-              </h2>
-              <p className="text-gray-600">
-                Accedi con le tue credenziali di socio per accedere ai contenuti riservati
-              </p>
-            </div>
+            </Link>
 
-            <div className="space-y-6">
-              {/* Coming Soon Message */}
-              <div className="bg-lions-light-gray border-l-4 border-lions-gold p-6 rounded">
-                <h3 className="text-lg font-bold text-lions-navy mb-2">
-                  Prossimamente
-                </h3>
-                <p className="text-gray-700 mb-4">
-                  L'Area Riservata è in fase di sviluppo e sarà disponibile a breve.
-                </p>
-                <p className="text-gray-600 text-sm">
-                  In questa sezione i soci potranno accedere a:
-                </p>
-                <ul className="list-disc pl-6 mt-3 space-y-2 text-gray-600 text-sm">
-                  <li>Documenti e regolamenti del club</li>
-                  <li>Calendari e programmi delle riunioni</li>
-                  <li>Elenco soci (se autorizzato)</li>
-                  <li>Comunicazioni e circolari interne</li>
-                  <li>Archivi fotografici e storici</li>
-                  <li>Dati finanziari e bilanci</li>
-                </ul>
+            {/* Documents Stats */}
+            <Link href="/area-riservata/documenti" className="block">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm">Documenti</p>
+                    <p className="text-4xl font-bold text-green-600">{stats.documentCount}</p>
+                  </div>
+                  <div className="p-4 bg-green-100 rounded-lg">
+                    <Archive size={32} className="text-green-600" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-4">Clicca per gestire</p>
               </div>
+            </Link>
 
-              {/* Contact for Login */}
-              <div className="bg-lions-navy text-white rounded-lg p-6 text-center">
-                <p className="mb-4">
-                  Se sei un socio e non possiedi ancora le credenziali di accesso,
-                </p>
-                <Link
-                  href="/contatti"
-                  className="inline-block px-6 py-3 bg-lions-gold text-lions-navy font-bold rounded-lg hover:bg-lions-light-gold transition-all"
-                >
-                  Contattaci per Ricevere le Credenziali
-                </Link>
+            {/* Profile */}
+            <Link href="/area-riservata/profilo" className="block">
+              <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-gray-600 text-sm">Profilo</p>
+                    <p className="text-2xl font-bold text-purple-600 mt-2">Il Mio Profilo</p>
+                  </div>
+                  <div className="p-4 bg-purple-100 rounded-lg">
+                    <User size={32} className="text-purple-600" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-4">Clicca per modificare</p>
               </div>
-
-              {/* Information Message */}
-              <div className="bg-gray-50 rounded-lg p-6 text-center">
-                <p className="text-gray-700">
-                  Questa area contiene informazioni e documenti esclusivamente per i soci del
-                  Lions Club Massafra-Mottola Le Cripte ODV.
-                </p>
-                <p className="text-gray-600 text-sm mt-4">
-                  L'accesso è protetto da password per mantenere la riservatezza delle
-                  informazioni e dei dati condivisi.
-                </p>
-              </div>
-            </div>
+            </Link>
           </div>
+        </section>
+      )}
+
+      {/* Quick Links */}
+      <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Accesso Rapido</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link
+            href="/area-riservata/news/nuovo"
+            className="flex items-center gap-3 p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+          >
+            <Newspaper size={24} className="text-blue-600" />
+            <div>
+              <p className="font-semibold text-gray-800">Nuova Notizia</p>
+              <p className="text-sm text-gray-600">Crea una nuova notizia</p>
+            </div>
+          </Link>
+
+          <Link
+            href="/area-riservata/documenti"
+            className="flex items-center gap-3 p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+          >
+            <Archive size={24} className="text-green-600" />
+            <div>
+              <p className="font-semibold text-gray-800">Archivio Documenti</p>
+              <p className="text-sm text-gray-600">Gestisci i documenti</p>
+            </div>
+          </Link>
         </div>
       </section>
 
       {/* Information Section */}
-      <section className="section-padding bg-lions-light-gray">
-        <div className="container max-w-7xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-lions-navy mb-12 font-serif text-center">
-            Come Accedere
-          </h2>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="card text-center">
-              <div className="text-4xl font-bold text-lions-gold mb-4">1</div>
-              <h3 className="text-lg font-bold text-lions-navy mb-3">Contatta il Club</h3>
-              <p className="text-gray-600 text-sm">
-                Se non possiedi le credenziali, contattaci tramite il form di contatto
-                o telefono.
-              </p>
-            </div>
-
-            <div className="card text-center">
-              <div className="text-4xl font-bold text-lions-gold mb-4">2</div>
-              <h3 className="text-lg font-bold text-lions-navy mb-3">Ricevi le Credenziali</h3>
-              <p className="text-gray-600 text-sm">
-                Ti invieremo via email username e password temporanea per accedere
-                all'area riservata.
-              </p>
-            </div>
-
-            <div className="card text-center">
-              <div className="text-4xl font-bold text-lions-gold mb-4">3</div>
-              <h3 className="text-lg font-bold text-lions-navy mb-3">Accedi e Esplora</h3>
-              <p className="text-gray-600 text-sm">
-                Accedi con le tue credenziali e esplora tutti i contenuti riservati
-                ai soci.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ Section */}
-      <section className="section-padding bg-white">
-        <div className="container max-w-4xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-lions-navy mb-12 font-serif text-center">
-            Domande Frequenti
-          </h2>
-
-          <div className="space-y-6">
-            <div className="card">
-              <h3 className="text-lg font-bold text-lions-navy mb-3">
-                Chi può accedere all'Area Riservata?
-              </h3>
-              <p className="text-gray-600">
-                Solo i soci del Lions Club Massafra-Mottola Le Cripte ODV in regola
-                con le quote possono accedere all'Area Riservata.
-              </p>
-            </div>
-
-            <div className="card">
-              <h3 className="text-lg font-bold text-lions-navy mb-3">
-                Come cambio la mia password?
-              </h3>
-              <p className="text-gray-600">
-                Una volta effettuato l'accesso, puoi modificare la tua password dalla
-                sezione Impostazioni Profilo.
-              </p>
-            </div>
-
-            <div className="card">
-              <h3 className="text-lg font-bold text-lions-navy mb-3">
-                Ho dimenticato la mia password. Cosa faccio?
-              </h3>
-              <p className="text-gray-600">
-                Usa la funzione "Password Dimenticata" nella pagina di accesso, oppure
-                contatta direttamente l'amministratore del club.
-              </p>
-            </div>
-
-            <div className="card">
-              <h3 className="text-lg font-bold text-lions-navy mb-3">
-                Posso condividere le mie credenziali con altri?
-              </h3>
-              <p className="text-gray-600">
-                No. Le credenziali sono personali e non devono essere condivise.
-                Per questioni di riservatezza, ogni socio ha accesso solo alle
-                informazioni per lui autorizzate.
-              </p>
-            </div>
-          </div>
-        </div>
+      <section className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+        <h2 className="text-xl font-bold text-blue-900 mb-3">Benvenuto nell'Area Riservata</h2>
+        <p className="text-blue-800 mb-2">
+          In questa sezione puoi gestire:
+        </p>
+        <ul className="list-disc pl-6 space-y-1 text-blue-700 text-sm">
+          <li>Notizie e comunicati del club</li>
+          <li>Documenti organizzati per anno e categoria</li>
+          <li>Il tuo profilo personale</li>
+        </ul>
       </section>
     </>
   );
