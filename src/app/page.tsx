@@ -201,9 +201,12 @@ export default function Home() {
         {/* Hero content */}
         <div className="hero-content relative z-10 px-4 sm:px-6 lg:px-8 text-center max-w-4xl">
           {/* Emblem */}
-          <div className="hero-emblem animate-scale-in-up mb-8">
-            L
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/lions-logo.png"
+            alt="Lions Club International"
+            className="w-28 h-28 rounded-full object-cover mx-auto mb-8 animate-scale-in-up shadow-2xl border-4 border-lions-gold/50"
+          />
 
           {/* Main title */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white mb-4 animate-fade-in-up font-serif tracking-tight">

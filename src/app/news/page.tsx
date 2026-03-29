@@ -70,7 +70,7 @@ export default function News() {
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-4 mb-4">
             <Newspaper size={32} className="text-lions-gold" />
-            <h1 className="text-5xl font-bold font-serif">Notizie e Aggiornamenti</h1>
+            <h1 className="text-5xl font-bold font-serif text-white">Notizie e Aggiornamenti</h1>
           </div>
           <p className="text-xl text-lions-light-gold">
             Rimani aggiornato sulle attività e i service del nostro club

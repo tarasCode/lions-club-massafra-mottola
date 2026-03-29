@@ -1,6 +1,6 @@
 'use client';
 
-import { Lock, Newspaper, Archive, User } from 'lucide-react';
+import { Newspaper, Archive, User } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
@@ -46,17 +46,12 @@ export default function AreaRiservata() {
 
   return (
     <>
-      {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12 mb-8 rounded-lg">
-        <div className="px-6">
-          <div className="flex items-center gap-4 mb-2">
-            <Lock size={28} className="text-yellow-400" />
-            <h1 className="text-4xl font-bold">Dashboard Area Riservata</h1>
-          </div>
-          <p className="text-lg text-blue-100">
-            Benvenuto nella sezione amministrativa
-          </p>
-        </div>
+      {/* Welcome box */}
+      <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 className="text-xl font-bold text-gray-800 mb-2">Benvenuto nell&apos;Area Riservata</h2>
+        <p className="text-gray-600 text-sm">
+          In questa sezione puoi gestire notizie e comunicati del club, documenti organizzati per anno e categoria, e il tuo profilo personale.
+        </p>
       </section>
 
       {/* Stats Section */}
@@ -115,7 +110,7 @@ export default function AreaRiservata() {
       )}
 
       {/* Quick Links */}
-      <section className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <section className="bg-white rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Accesso Rapido</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Link
@@ -140,19 +135,6 @@ export default function AreaRiservata() {
             </div>
           </Link>
         </div>
-      </section>
-
-      {/* Information Section */}
-      <section className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h2 className="text-xl font-bold text-blue-900 mb-3">Benvenuto nell'Area Riservata</h2>
-        <p className="text-blue-800 mb-2">
-          In questa sezione puoi gestire:
-        </p>
-        <ul className="list-disc pl-6 space-y-1 text-blue-700 text-sm">
-          <li>Notizie e comunicati del club</li>
-          <li>Documenti organizzati per anno e categoria</li>
-          <li>Il tuo profilo personale</li>
-        </ul>
       </section>
     </>
   );

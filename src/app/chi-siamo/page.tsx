@@ -8,7 +8,7 @@ export default function ChiSiamo() {
       <section className="bg-gradient-to-r from-lions-navy to-lions-navy/80 text-white py-20">
         <div className="container max-w-7xl mx-auto px-4">
           <div className="animate-fade-in-up">
-            <h1 className="text-5xl font-bold mb-4 font-serif">Chi Siamo</h1>
+            <h1 className="text-5xl font-bold mb-4 font-serif text-white">Chi Siamo</h1>
             <p className="text-xl text-lions-light-gold">
               La storia, la missione e i valori del Lions Club Massafra-Mottola
             </p>

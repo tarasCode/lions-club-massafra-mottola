@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import LayoutWrapper from "@/components/LayoutWrapper";
+import { ToastProvider } from "@/components/Toast";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -33,7 +34,9 @@ export default function RootLayout({
         <meta name="theme-color" content="#003366" />
       </head>
       <body className={`${inter.className} flex flex-col min-h-screen`}>
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <ToastProvider>
+          <LayoutWrapper>{children}</LayoutWrapper>
+        </ToastProvider>
       </body>
     </html>
   );

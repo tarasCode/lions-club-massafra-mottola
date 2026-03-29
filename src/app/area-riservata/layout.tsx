@@ -100,9 +100,8 @@ export default function AdminLayout({
         {/* Logo Section */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-blue-900">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-lions-gold flex items-center justify-center flex-shrink-0">
-              <span className="text-lions-navy font-bold text-sm font-serif">L</span>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/lions-logo.png" alt="Lions Club" className="w-9 h-9 rounded-full flex-shrink-0 object-cover" />
             <div className="flex flex-col">
               <span className="text-sm font-bold text-white leading-tight">Lions Club</span>
               <span className="text-[10px] text-lions-light-gold leading-tight">Area Riservata</span>
@@ -171,14 +170,20 @@ export default function AdminLayout({
             <Menu size={22} />
           </button>
 
-          {/* Current page title */}
-          <div className="flex-1">
-            <h2 className="text-base font-semibold text-gray-700 hidden md:block">
-              {pathname === '/area-riservata' && 'Dashboard'}
+          {/* Current page title + subtitle */}
+          <div className="flex-1 hidden md:block">
+            <h2 className="text-base font-semibold text-gray-700 leading-tight">
+              {pathname === '/area-riservata' && 'Dashboard Area Riservata'}
               {pathname.startsWith('/area-riservata/news') && 'Gestione News'}
               {pathname.startsWith('/area-riservata/documenti') && 'Archivio Documenti'}
-              {pathname.startsWith('/area-riservata/profilo') && 'Profilo'}
+              {pathname.startsWith('/area-riservata/profilo') && 'Il Mio Profilo'}
             </h2>
+            <p className="text-xs text-gray-400 leading-tight">
+              {pathname === '/area-riservata' && 'Benvenuto nella sezione amministrativa'}
+              {pathname.startsWith('/area-riservata/news') && 'Crea, modifica e pubblica le notizie del club'}
+              {pathname.startsWith('/area-riservata/documenti') && 'Gestisci i documenti per anno e categoria (max 5MB per file)'}
+              {pathname.startsWith('/area-riservata/profilo') && 'Gestisci le tue informazioni personali'}
+            </p>
           </div>
 
           {/* Profile icon with dropdown */}

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/Toast';
 import {
   Plus,
   Trash2,
@@ -15,6 +16,8 @@ import {
   Eye,
   Image as ImageIcon,
   FileIcon,
+  Pencil,
+  FolderPlus,
 } from 'lucide-react';
 
 interface Category {
@@ -55,8 +58,13 @@ export default function DocumentsPage() {
   const [showNewYearModal, setShowNewYearModal] = useState(false);
   const [newYear, setNewYear] = useState(new Date().getFullYear());
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [showNewFolderFor, setShowNewFolderFor] = useState<number | null>(null);
+  const [newFolderName, setNewFolderName] = useState('');
 
   const supabase = createClient();
+  const { showToast, showConfirm } = useToast();
 
   const fetchDocuments = useCallback(async () => {
     try {
@@ -144,11 +152,11 @@ export default function DocumentsPage() {
       setFolders(sortedFolders);
     } catch (error) {
       console.error('Errore nel caricamento dei documenti:', error);
-      alert('Errore nel caricamento dei documenti');
+      showToast('error', 'Errore nel caricamento dei documenti');
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, showToast]);
 
   useEffect(() => {
     fetchDocuments();
@@ -218,7 +226,7 @@ export default function DocumentsPage() {
 
     // Limit file size to 5MB for DB storage
     if (file.size > 5 * 1024 * 1024) {
-      alert('Il file è troppo grande. Dimensione massima: 5MB');
+      showToast('error', 'Il file è troppo grande. Dimensione massima: 5MB');
       e.target.value = '';
       return;
     }
@@ -258,45 +266,45 @@ export default function DocumentsPage() {
 
       if (insertError) throw insertError;
 
-      alert('Documento caricato con successo');
+      showToast('success', 'Documento caricato con successo');
       fetchDocuments();
     } catch (error: any) {
       console.error('Errore nell\'upload:', error);
-      alert('Errore nell\'upload: ' + (error?.message || 'Errore sconosciuto'));
+      showToast('error', 'Errore nell\'upload: ' + (error?.message || 'Errore sconosciuto'));
     } finally {
       setUploadingTo(null);
       e.target.value = '';
     }
-  }, [supabase, fetchDocuments]);
+  }, [supabase, fetchDocuments, showToast]);
 
-  const handleDeleteDocument = useCallback(async (docId: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questo documento?')) return;
+  const handleDeleteDocument = useCallback((docId: string) => {
+    showConfirm('Sei sicuro di voler eliminare questo documento?', async () => {
+      try {
+        setDeleting(docId);
+        const { error } = await supabase
+          .from('documents')
+          .delete()
+          .eq('id', docId);
 
-    try {
-      setDeleting(docId);
-      const { error } = await supabase
-        .from('documents')
-        .delete()
-        .eq('id', docId);
+        if (error) throw error;
 
-      if (error) throw error;
+        if (previewDoc?.id === docId) setPreviewDoc(null);
+        showToast('success', 'Documento eliminato con successo');
+        fetchDocuments();
+      } catch (error) {
+        console.error('Errore nell\'eliminazione:', error);
+        showToast('error', 'Errore nell\'eliminazione del documento');
+      } finally {
+        setDeleting(null);
+      }
+    });
+  }, [supabase, fetchDocuments, previewDoc, showConfirm, showToast]);
 
-      if (previewDoc?.id === docId) setPreviewDoc(null);
-      alert('Documento eliminato con successo');
-      fetchDocuments();
-    } catch (error) {
-      console.error('Errore nell\'eliminazione:', error);
-      alert('Errore nell\'eliminazione del documento');
-    } finally {
-      setDeleting(null);
-    }
-  }, [supabase, fetchDocuments, previewDoc]);
-
-  const handleAddYear = async () => {
+  const handleAddYear = useCallback(async () => {
     try {
       const existingYear = folders.find(f => f.year === newYear);
       if (existingYear) {
-        alert('Questo anno esiste già');
+        showToast('warning', 'Questo anno esiste già');
         return;
       }
 
@@ -319,13 +327,80 @@ export default function DocumentsPage() {
 
       setShowNewYearModal(false);
       setNewYear(new Date().getFullYear());
-      alert('Anno aggiunto con successo');
+      showToast('success', 'Anno aggiunto con successo');
       fetchDocuments();
     } catch (error) {
       console.error('Errore nell\'aggiunta dell\'anno:', error);
-      alert('Errore nell\'aggiunta dell\'anno');
+      showToast('error', 'Errore nell\'aggiunta dell\'anno');
     }
-  };
+  }, [folders, newYear, supabase, showToast, fetchDocuments]);
+
+  const handleRenameFolder = useCallback(async (categoryId: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('document_categories')
+        .update({ name: newName })
+        .eq('id', categoryId);
+      if (error) throw error;
+      showToast('success', 'Cartella rinominata');
+      setRenamingFolder(null);
+      setRenameValue('');
+      fetchDocuments();
+    } catch (error) {
+      console.error('Errore nella rinomina:', error);
+      showToast('error', 'Errore nella rinomina della cartella');
+    }
+  }, [supabase, showToast, fetchDocuments]);
+
+  const handleDeleteFolder = useCallback((catFolder: CategoryFolder) => {
+    const docCount = catFolder.documents.length;
+    const msg = docCount > 0
+      ? `Sei sicuro di voler eliminare la cartella "${catFolder.category.name}" e i suoi ${docCount} documenti?`
+      : `Sei sicuro di voler eliminare la cartella "${catFolder.category.name}"?`;
+    showConfirm(msg, async () => {
+      try {
+        // Delete all documents in the folder first
+        if (catFolder.realFolderId) {
+          await supabase.from('documents').delete().eq('folder_id', catFolder.realFolderId);
+          await supabase.from('document_folders').delete().eq('id', catFolder.realFolderId);
+        }
+        showToast('success', 'Cartella eliminata');
+        fetchDocuments();
+      } catch (error) {
+        console.error('Errore nell\'eliminazione della cartella:', error);
+        showToast('error', 'Errore nell\'eliminazione della cartella');
+      }
+    });
+  }, [supabase, showConfirm, showToast, fetchDocuments]);
+
+  const handleCreateFolder = useCallback(async (year: number) => {
+    if (!newFolderName.trim()) {
+      showToast('error', 'Inserisci un nome per la cartella');
+      return;
+    }
+    try {
+      // Create category first
+      const { data: cat, error: catErr } = await supabase
+        .from('document_categories')
+        .insert({
+          name: newFolderName.trim(),
+          slug: newFolderName.trim().toLowerCase().replace(/\s+/g, '-'),
+          sort_order: 99
+        })
+        .select('id')
+        .single();
+      if (catErr) throw catErr;
+      // Create folder for this year
+      await supabase.from('document_folders').insert({ year, category_id: cat!.id });
+      showToast('success', 'Cartella creata');
+      setShowNewFolderFor(null);
+      setNewFolderName('');
+      fetchDocuments();
+    } catch (error) {
+      console.error('Errore nella creazione della cartella:', error);
+      showToast('error', 'Errore nella creazione della cartella');
+    }
+  }, [newFolderName, supabase, showToast, fetchDocuments]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return '0 B';
@@ -394,21 +469,6 @@ export default function DocumentsPage() {
     <div className="flex gap-6 min-h-[calc(100vh-200px)]">
       {/* Left: Document Tree */}
       <div className={`space-y-6 transition-all duration-300 ${previewDoc ? 'w-1/2' : 'w-full'}`}>
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-800">Archivio Documenti</h1>
-            <p className="text-gray-500 text-sm mt-1">Gestisci i documenti per anno e categoria (max 5MB per file)</p>
-          </div>
-          <button
-            onClick={() => setShowNewYearModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
-          >
-            <Plus size={18} />
-            Nuovo Anno
-          </button>
-        </div>
-
         {/* New Year Modal */}
         {showNewYearModal && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -448,6 +508,17 @@ export default function DocumentsPage() {
           </div>
         )}
 
+        {/* Top button bar */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => setShowNewYearModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
+          >
+            <Plus size={18} />
+            Nuovo Anno
+          </button>
+        </div>
+
         {/* Document Tree */}
         <div className="space-y-3">
           {folders.length === 0 ? (
@@ -464,22 +535,76 @@ export default function DocumentsPage() {
           ) : (
             folders.map(yearFolder => (
               <div key={yearFolder.year} className="bg-white rounded-lg shadow-md overflow-hidden">
-                <button
-                  onClick={() => toggleFolder(`year-${yearFolder.year}`)}
-                  className="w-full flex items-center justify-between px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
+                <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+                  <button
+                    onClick={() => toggleFolder(`year-${yearFolder.year}`)}
+                    className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
+                  >
                     {expandedFolders.has(`year-${yearFolder.year}`) ? (
                       <ChevronDown size={20} />
                     ) : (
                       <ChevronRight size={20} />
                     )}
                     <span className="text-lg font-semibold">{yearFolder.year}</span>
-                  </div>
-                  <span className="text-sm opacity-90">
+                  </button>
+                  <span className="text-sm opacity-90 mr-4">
                     {yearFolder.categories.reduce((acc, cat) => acc + cat.documents.length, 0)} documenti
                   </span>
-                </button>
+                  <button
+                    onClick={() => {
+                      if (showNewFolderFor === yearFolder.year) {
+                        setShowNewFolderFor(null);
+                        setNewFolderName('');
+                      } else {
+                        setShowNewFolderFor(yearFolder.year);
+                        setNewFolderName('');
+                      }
+                    }}
+                    className="p-1.5 rounded hover:bg-white hover:bg-opacity-20 transition-colors"
+                    title="Nuova cartella"
+                  >
+                    <FolderPlus size={18} />
+                  </button>
+                </div>
+
+                {/* New folder creation input */}
+                {showNewFolderFor === yearFolder.year && (
+                  <div className="border-t border-gray-200 px-8 py-3 bg-gray-50">
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="Nome cartella..."
+                        value={newFolderName}
+                        onChange={(e) => setNewFolderName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleCreateFolder(yearFolder.year);
+                          } else if (e.key === 'Escape') {
+                            setShowNewFolderFor(null);
+                            setNewFolderName('');
+                          }
+                        }}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => handleCreateFolder(yearFolder.year)}
+                        className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        Crea
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowNewFolderFor(null);
+                          setNewFolderName('');
+                        }}
+                        className="px-3 py-2 bg-gray-300 text-gray-800 rounded-lg hover:bg-gray-400 transition-colors text-sm"
+                      >
+                        Annulla
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {expandedFolders.has(`year-${yearFolder.year}`) && (
                   <div className="border-t border-gray-200">
@@ -487,23 +612,92 @@ export default function DocumentsPage() {
                       const catKey = `cat-${yearFolder.year}-${catFolder.category.id}`;
                       return (
                         <div key={catFolder.id} className="border-b border-gray-200 last:border-b-0">
-                          <button
-                            onClick={() => toggleFolder(catKey)}
-                            className="w-full flex items-center justify-between px-8 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
-                          >
-                            <div className="flex items-center gap-2">
+                          <div className="w-full flex items-center justify-between px-8 py-3 bg-gray-50 hover:bg-gray-100 transition-colors">
+                            <button
+                              onClick={() => toggleFolder(catKey)}
+                              className="flex items-center gap-2 flex-1"
+                            >
                               {expandedFolders.has(catKey) ? (
                                 <ChevronDown size={18} className="text-gray-600" />
                               ) : (
                                 <ChevronRight size={18} className="text-gray-600" />
                               )}
                               <Folder size={18} className="text-blue-600" />
-                              <span className="font-medium text-gray-800 text-sm">
-                                {catFolder.category.name}
-                              </span>
+                              {renamingFolder === catFolder.id ? (
+                                <input
+                                  type="text"
+                                  value={renameValue}
+                                  onChange={(e) => setRenameValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleRenameFolder(catFolder.category.id, renameValue);
+                                    } else if (e.key === 'Escape') {
+                                      setRenamingFolder(null);
+                                      setRenameValue('');
+                                    }
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="flex-1 px-2 py-1 border border-blue-500 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                  autoFocus
+                                />
+                              ) : (
+                                <span className="font-medium text-gray-800 text-sm">
+                                  {catFolder.category.name}
+                                </span>
+                              )}
+                            </button>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-500 mr-2">{catFolder.documents.length}</span>
+                              {renamingFolder !== catFolder.id && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setRenamingFolder(catFolder.id);
+                                      setRenameValue(catFolder.category.name);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:bg-gray-200 rounded transition-colors"
+                                    title="Rinomina"
+                                  >
+                                    <Pencil size={16} />
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteFolder(catFolder);
+                                    }}
+                                    className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors"
+                                    title="Elimina"
+                                  >
+                                    <Trash2 size={16} />
+                                  </button>
+                                </>
+                              )}
+                              {renamingFolder === catFolder.id && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRenameFolder(catFolder.category.id, renameValue);
+                                    }}
+                                    className="px-2 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors"
+                                  >
+                                    OK
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setRenamingFolder(null);
+                                      setRenameValue('');
+                                    }}
+                                    className="px-2 py-1 bg-gray-300 text-gray-800 rounded text-xs font-medium hover:bg-gray-400 transition-colors"
+                                  >
+                                    X
+                                  </button>
+                                </>
+                              )}
                             </div>
-                            <span className="text-sm text-gray-500">{catFolder.documents.length}</span>
-                          </button>
+                          </div>
 
                           {expandedFolders.has(catKey) && (
                             <div className="px-8 py-3 bg-white border-t border-gray-100 space-y-2">

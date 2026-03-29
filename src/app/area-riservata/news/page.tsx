@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/Toast';
 import {
   Plus,
   Edit,
@@ -23,6 +24,7 @@ interface NewsItem {
 }
 
 export default function NewsPage() {
+  const { showToast, showConfirm } = useToast();
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,25 +56,25 @@ export default function NewsPage() {
     fetchNews();
   }, [fetchNews]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questa notizia?')) return;
+  const handleDelete = (id: string) => {
+    showConfirm('Sei sicuro di voler eliminare questa notizia?', async () => {
+      try {
+        setDeleting(id);
+        const { error } = await supabase
+          .from('news')
+          .delete()
+          .eq('id', id);
 
-    try {
-      setDeleting(id);
-      const { error } = await supabase
-        .from('news')
-        .delete()
-        .eq('id', id);
+        if (error) throw error;
 
-      if (error) throw error;
-
-      setNews(news.filter(n => n.id !== id));
-    } catch (error) {
-      console.error('Errore nell\'eliminazione:', error);
-      alert('Errore nell\'eliminazione della notizia');
-    } finally {
-      setDeleting(null);
-    }
+        setNews(prev => prev.filter(n => n.id !== id));
+      } catch (error) {
+        console.error('Errore nell\'eliminazione:', error);
+        showToast('error', 'Errore nell\'eliminazione della notizia');
+      } finally {
+        setDeleting(null);
+      }
+    });
   };
 
   const handleTogglePublish = async (id: string, currentStatus: boolean) => {
@@ -99,7 +101,7 @@ export default function NewsPage() {
       ));
     } catch (error) {
       console.error('Errore nell\'aggiornamento:', error);
-      alert('Errore nell\'aggiornamento dello stato di pubblicazione');
+      showToast('error', 'Errore nell\'aggiornamento dello stato di pubblicazione');
     } finally {
       setTogglingPublish(null);
     }

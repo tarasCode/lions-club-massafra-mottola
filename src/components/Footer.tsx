@@ -12,9 +12,8 @@ export default function Footer() {
           {/* About Section */}
           <div className="animate-fade-in-up">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-full bg-lions-gold/20 flex items-center justify-center">
-                <span className="text-lions-gold font-bold text-lg font-serif">L</span>
-              </div>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/lions-logo.png" alt="Lions Club" className="w-10 h-10 rounded-full object-cover" />
               <h3 className="text-lions-light-gold text-lg font-bold">Lions Club</h3>
             </div>
             <p className="text-gray-300 text-sm mb-4 leading-relaxed">

@@ -3,8 +3,10 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Mail, Phone, MapPin, Send, MessageSquare } from 'lucide-react';
+import { useToast } from '@/components/Toast';
 
 export default function Contatti() {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -33,7 +35,7 @@ export default function Contatti() {
       !formData.email ||
       !formData.message
     ) {
-      alert('Per favore, compila tutti i campi obbligatori');
+      showToast('error', 'Per favore, compila tutti i campi obbligatori');
       return;
     }
 
@@ -56,7 +58,7 @@ export default function Contatti() {
       }, 3000);
     } catch (error) {
       console.error('Error submitting form:', error);
-      alert('Errore durante l\'invio del messaggio. Per favore, riprova.');
+      showToast('error', 'Errore durante l\'invio del messaggio. Per favore, riprova.');
     }
   };
 
@@ -67,7 +69,7 @@ export default function Contatti() {
         <div className="container max-w-7xl mx-auto px-4">
           <div className="flex items-center gap-4 mb-4">
             <MessageSquare size={32} className="text-lions-gold" />
-            <h1 className="text-5xl font-bold font-serif">Contatti</h1>
+            <h1 className="text-5xl font-bold font-serif text-white">Contatti</h1>
           </div>
           <p className="text-xl text-lions-light-gold">
             Raggiungi il Lions Club Massafra-Mottola Le Cripte

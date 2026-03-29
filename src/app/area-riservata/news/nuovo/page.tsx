@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useToast } from '@/components/Toast';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 
 interface NewsForm {
@@ -15,6 +16,7 @@ interface NewsForm {
 }
 
 function NewsFormContent() {
+  const { showToast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams.get('id');
@@ -57,7 +59,7 @@ function NewsFormContent() {
       }
     } catch (error) {
       console.error('Errore nel caricamento della notizia:', error);
-      alert('Errore nel caricamento della notizia');
+      showToast('error', 'Errore nel caricamento della notizia');
     } finally {
       setLoading(false);
     }
@@ -113,7 +115,7 @@ function NewsFormContent() {
       });
     } catch (error) {
       console.error('Errore nell\'upload dell\'immagine:', error);
-      alert('Errore nell\'upload dell\'immagine');
+      showToast('error', 'Errore nell\'upload dell\'immagine');
     } finally {
       setUploadingImage(false);
     }
@@ -121,17 +123,17 @@ function NewsFormContent() {
 
   const handleSave = async (publish: boolean) => {
     if (!form.title.trim()) {
-      alert('Il titolo è obbligatorio');
+      showToast('error', 'Il titolo è obbligatorio');
       return;
     }
 
     if (!form.excerpt.trim()) {
-      alert('L\'estratto è obbligatorio');
+      showToast('error', 'L\'estratto è obbligatorio');
       return;
     }
 
     if (!form.content.trim()) {
-      alert('Il contenuto è obbligatorio');
+      showToast('error', 'Il contenuto è obbligatorio');
       return;
     }
 
@@ -143,7 +145,7 @@ function NewsFormContent() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        alert('Errore di autenticazione');
+        showToast('error', 'Errore di autenticazione');
         return;
       }
 
@@ -166,19 +168,19 @@ function NewsFormContent() {
 
         if (error) throw error;
 
-        alert('Notizia aggiornata con successo');
+        showToast('success', 'Notizia aggiornata con successo');
       } else {
         const { error } = await supabase.from('news').insert([newsData]);
 
         if (error) throw error;
 
-        alert('Notizia creata con successo');
+        showToast('success', 'Notizia creata con successo');
       }
 
       router.push('/area-riservata/news');
     } catch (error) {
       console.error('Errore nel salvataggio:', error);
-      alert('Errore nel salvataggio della notizia');
+      showToast('error', 'Errore nel salvataggio della notizia');
     } finally {
       setSaving(false);
     }

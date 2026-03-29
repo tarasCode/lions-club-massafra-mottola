@@ -27,6 +27,8 @@ export default function Header() {
     setIsMenuOpen(false);
   };
 
+  const isLoginPage = pathname === '/login';
+
   const navLinks = [
     { href: '/', label: 'Home' },
     { href: '/chi-siamo', label: 'Chi Siamo' },
@@ -54,16 +56,13 @@ export default function Header() {
             href="/"
             className="flex items-center gap-3 no-underline transition-transform duration-200 hover:scale-105"
           >
-            {/* Lions Logo Circle */}
-            <div
-              className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
-                isScrolled
-                  ? 'bg-lions-gold shadow-lions'
-                  : 'bg-lions-gold/90 shadow-lions-float'
-              }`}
-            >
-              <span className="text-lions-navy font-bold text-lg font-serif">L</span>
-            </div>
+            {/* Lions Logo */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/lions-logo.png"
+              alt="Lions Club"
+              className="w-12 h-12 rounded-full flex-shrink-0 object-cover transition-all duration-300"
+            />
             <div className="hidden sm:flex flex-col transition-colors duration-300">
               <span className={`font-bold text-sm ${isScrolled ? 'text-lions-navy' : 'text-white'}`}>
                 Lions Club
@@ -96,17 +95,19 @@ export default function Header() {
                 )}
               </Link>
             ))}
-            <Link
-              href="/area-riservata"
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                isScrolled
-                  ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
-                  : 'bg-lions-gold/90 text-lions-navy hover:bg-lions-gold'
-              }`}
-            >
-              <Lock size={16} />
-              Area Riservata
-            </Link>
+            {!isLoginPage && (
+              <Link
+                href="/area-riservata"
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  isScrolled
+                    ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
+                    : 'bg-lions-gold/90 text-lions-navy hover:bg-lions-gold'
+                }`}
+              >
+                <Lock size={16} />
+                Area Riservata
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
@@ -143,18 +144,20 @@ export default function Header() {
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/area-riservata"
-                onClick={closeMenu}
-                className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 w-fit ${
-                  isScrolled
-                    ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
-                    : 'bg-lions-gold/90 text-lions-navy'
-                }`}
-              >
-                <Lock size={16} />
-                Area Riservata
-              </Link>
+              {!isLoginPage && (
+                <Link
+                  href="/area-riservata"
+                  onClick={closeMenu}
+                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 w-fit ${
+                    isScrolled
+                      ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
+                      : 'bg-lions-gold/90 text-lions-navy'
+                  }`}
+                >
+                  <Lock size={16} />
+                  Area Riservata
+                </Link>
+              )}
             </div>
           </nav>
         )}
