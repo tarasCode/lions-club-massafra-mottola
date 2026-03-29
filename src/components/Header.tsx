@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Lock } from 'lucide-react';
+import { Menu, X, Lock, ExternalLink } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,103 +42,148 @@ export default function Header() {
   };
 
   return (
-    <header
-      className={`sticky top-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'glass-effect shadow-lg border-b border-lions-gold/10'
-          : 'bg-lions-navy/40 backdrop-blur-sm'
-      }`}
-    >
-      <div className="container max-w-7xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo & Club Name */}
-          <Link
-            href="/"
-            className="flex items-center gap-3 no-underline transition-transform duration-200 hover:scale-105"
-          >
-            {/* Lions Logo */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/lions-logo.png"
-              alt="Lions Club"
-              className="w-12 h-12 rounded-full flex-shrink-0 object-cover transition-all duration-300"
-            />
-            <div className="hidden sm:flex flex-col transition-colors duration-300">
-              <span className={`font-bold text-sm ${isScrolled ? 'text-lions-navy' : 'text-white'}`}>
-                Lions Club
-              </span>
-              <span className={`text-xs font-semibold ${isScrolled ? 'text-lions-gold' : 'text-lions-light-gold'}`}>
-                Massafra-Mottola Le Cripte
-              </span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`font-medium transition-all duration-200 relative py-2 ${
-                  isScrolled
-                    ? 'text-lions-dark-text hover:text-lions-gold'
-                    : 'text-white hover:text-lions-light-gold'
-                } ${isActive(link.href) ? (isScrolled ? 'text-lions-gold' : 'text-lions-light-gold') : ''}`}
-              >
-                {link.label}
-                {isActive(link.href) && (
-                  <div
-                    className={`absolute bottom-0 left-0 h-0.5 w-full rounded-full transition-all duration-300 ${
-                      isScrolled ? 'bg-lions-gold' : 'bg-lions-light-gold'
-                    }`}
-                  />
-                )}
-              </Link>
-            ))}
+    <header className="sticky top-0 z-50">
+      {/* Top bar - Lions International style */}
+      <div className="bg-lions-dark-navy text-white">
+        <div className="container max-w-7xl mx-auto px-4 py-1.5 flex items-center justify-between text-xs">
+          <div className="flex items-center gap-4">
+            <a
+              href="https://www.lionsclubs.org"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-lions-gold transition-colors flex items-center gap-1"
+            >
+              LIONSCLUBS.ORG <ExternalLink size={10} />
+            </a>
+            <a
+              href="https://www.lionsclubs.org/it/lcif"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden sm:inline-block hover:text-lions-gold transition-colors"
+            >
+              LCIF
+            </a>
+          </div>
+          <div className="flex items-center gap-4">
             {!isLoginPage && (
               <Link
                 href="/area-riservata"
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  isScrolled
-                    ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
-                    : 'bg-lions-gold/90 text-lions-navy hover:bg-lions-gold'
-                }`}
+                className="hover:text-lions-gold transition-colors flex items-center gap-1"
               >
-                <Lock size={16} />
-                Area Riservata
+                <Lock size={10} />
+                AREA RISERVATA
               </Link>
             )}
-          </nav>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMenu}
-            className={`lg:hidden p-2 rounded-lg transition-colors duration-200 ${
-              isScrolled
-                ? 'text-lions-navy hover:bg-lions-light-gray'
-                : 'text-white hover:bg-white/10'
-            }`}
-            aria-label="Toggle menu"
-          >
-            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <nav className="lg:hidden mt-4 pb-4 border-t border-lions-gold/20 pt-4 animate-slide-in-left">
-            <div className="flex flex-col gap-2">
+      {/* Main navbar */}
+      <div
+        className={`transition-all duration-300 ${
+          isScrolled
+            ? 'bg-white shadow-lg border-b border-gray-200'
+            : 'bg-lions-navy'
+        }`}
+      >
+        <div className="container max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo & Club Name */}
+            <Link
+              href="/"
+              className="flex items-center gap-3 no-underline transition-transform duration-200 hover:scale-[1.02]"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/lions-logo.png"
+                alt="Lions Club"
+                className="w-11 h-11 flex-shrink-0 object-contain transition-all duration-300"
+              />
+              <div className="hidden sm:flex flex-col">
+                <span className={`font-bold text-sm leading-tight ${isScrolled ? 'text-lions-navy' : 'text-white'}`}>
+                  Lions Club
+                </span>
+                <span className={`text-[11px] font-semibold leading-tight ${isScrolled ? 'text-lions-gold' : 'text-lions-gold'}`}>
+                  Massafra-Mottola Le Cripte
+                </span>
+              </div>
+            </Link>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`px-4 py-2 font-semibold text-sm transition-all duration-200 relative rounded-md ${
+                    isScrolled
+                      ? isActive(link.href)
+                        ? 'text-lions-navy bg-lions-light-gray'
+                        : 'text-gray-700 hover:text-lions-navy hover:bg-gray-100'
+                      : isActive(link.href)
+                        ? 'text-lions-gold'
+                        : 'text-white/90 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  {link.label}
+                  {isActive(link.href) && (
+                    <div
+                      className={`absolute bottom-0 left-2 right-2 h-0.5 rounded-full ${
+                        isScrolled ? 'bg-lions-gold' : 'bg-lions-gold'
+                      }`}
+                    />
+                  )}
+                </Link>
+              ))}
+              {!isLoginPage && (
+                <Link
+                  href="/area-riservata"
+                  className={`flex items-center gap-2 px-5 py-2 rounded-md font-semibold text-sm ml-2 transition-all duration-200 ${
+                    isScrolled
+                      ? 'bg-lions-gold text-lions-dark-navy hover:bg-yellow-500'
+                      : 'bg-lions-gold text-lions-dark-navy hover:bg-yellow-400'
+                  }`}
+                >
+                  <Lock size={14} />
+                  Area Riservata
+                </Link>
+              )}
+            </nav>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleMenu}
+              className={`lg:hidden p-2 rounded-lg transition-colors duration-200 ${
+                isScrolled
+                  ? 'text-lions-navy hover:bg-lions-light-gray'
+                  : 'text-white hover:bg-white/10'
+              }`}
+              aria-label="Toggle menu"
+            >
+              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isMenuOpen && (
+        <div className={`lg:hidden border-t ${isScrolled ? 'bg-white border-gray-200' : 'bg-lions-navy border-white/10'}`}>
+          <nav className="container max-w-7xl mx-auto px-4 py-3 animate-slide-in-left">
+            <div className="flex flex-col gap-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
                   onClick={closeMenu}
-                  className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
+                  className={`px-4 py-3 rounded-lg font-semibold text-sm transition-all duration-200 ${
                     isActive(link.href)
-                      ? 'bg-lions-gold/20 text-lions-gold'
+                      ? isScrolled
+                        ? 'bg-lions-light-gray text-lions-navy'
+                        : 'bg-white/10 text-lions-gold'
                       : isScrolled
-                        ? 'text-lions-dark-text hover:bg-lions-light-gray'
-                        : 'text-white hover:bg-white/10'
+                        ? 'text-gray-700 hover:bg-gray-100'
+                        : 'text-white/90 hover:bg-white/10'
                   }`}
                 >
                   {link.label}
@@ -148,20 +193,16 @@ export default function Header() {
                 <Link
                   href="/area-riservata"
                   onClick={closeMenu}
-                  className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 w-fit ${
-                    isScrolled
-                      ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
-                      : 'bg-lions-gold/90 text-lions-navy'
-                  }`}
+                  className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold text-sm bg-lions-gold text-lions-dark-navy mt-2 w-fit"
                 >
-                  <Lock size={16} />
+                  <Lock size={14} />
                   Area Riservata
                 </Link>
               )}
             </div>
           </nav>
-        )}
-      </div>
+        </div>
+      )}
     </header>
   );
 }

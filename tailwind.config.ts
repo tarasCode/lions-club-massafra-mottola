@@ -9,12 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        "lions-navy": "#003366",
-        "lions-gold": "#C8A951",
-        "lions-light-gold": "#F5E6B8",
+        "lions-navy": "#00338D",
+        "lions-dark-navy": "#002244",
+        "lions-gold": "#EBB700",
+        "lions-light-gold": "#FFF3CC",
         "lions-white": "#FFFFFF",
-        "lions-light-gray": "#F8F9FA",
+        "lions-light-gray": "#F5F5F5",
         "lions-dark-text": "#1a1a2e",
+        "lions-gray": "#766A62",
+        "lions-purple": "#622567",
+        "lions-light-blue": "#407CCA",
+        "lions-green": "#00AB68",
+        "lions-orange": "#CA7700",
       },
       fontFamily: {
         sans: ["'Inter'", "sans-serif"],
@@ -24,14 +30,14 @@ const config: Config = {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
-        "lions-gradient": "linear-gradient(135deg, #003366 0%, #C8A951 100%)",
-        "lions-hero": "linear-gradient(135deg, #003366 0%, #1a4d7a 50%, #003366 100%)",
+        "lions-gradient": "linear-gradient(135deg, #00338D 0%, #EBB700 100%)",
+        "lions-hero": "linear-gradient(135deg, #002244 0%, #00338D 50%, #002244 100%)",
       },
       boxShadow: {
-        "lions": "0 10px 30px rgba(0, 51, 102, 0.15)",
-        "lions-lg": "0 20px 40px rgba(0, 51, 102, 0.2)",
-        "lions-glow": "0 0 24px rgba(200, 169, 81, 0.2)",
-        "lions-float": "0 12px 32px rgba(200, 169, 81, 0.25)",
+        "lions": "0 10px 30px rgba(0, 51, 141, 0.15)",
+        "lions-lg": "0 20px 40px rgba(0, 51, 141, 0.2)",
+        "lions-glow": "0 0 24px rgba(235, 183, 0, 0.2)",
+        "lions-float": "0 12px 32px rgba(235, 183, 0, 0.25)",
       },
       animation: {
         "fade-in-up": "fadeInUp 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards",

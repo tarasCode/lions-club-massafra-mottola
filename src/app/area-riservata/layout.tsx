@@ -93,15 +93,15 @@ export default function AdminLayout({
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#003366] text-white transition-transform duration-300 ease-in-out flex-shrink-0 ${
+        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#002244] text-white transition-transform duration-300 ease-in-out flex-shrink-0 ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Logo Section */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-blue-900">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
           <div className="flex items-center gap-3">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/lions-logo.png" alt="Lions Club" className="w-9 h-9 rounded-full flex-shrink-0 object-cover" />
+            <img src="/lions-logo.png" alt="Lions Club" className="w-9 h-9 flex-shrink-0 object-contain" />
             <div className="flex flex-col">
               <span className="text-sm font-bold text-white leading-tight">Lions Club</span>
               <span className="text-[10px] text-lions-light-gold leading-tight">Area Riservata</span>
@@ -126,8 +126,8 @@ export default function AdminLayout({
                 href={item.href}
                 className={`flex items-center px-4 py-3 rounded-lg transition-colors group ${
                   active
-                    ? 'bg-blue-900 text-white font-semibold'
-                    : 'text-blue-200 hover:bg-blue-900/50 hover:text-white'
+                    ? 'bg-white/10 text-white font-semibold'
+                    : 'text-gray-300 hover:bg-white/10 hover:text-white'
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -143,8 +143,8 @@ export default function AdminLayout({
         </nav>
 
         {/* Bottom copyright only */}
-        <div className="border-t border-blue-900 p-4 text-center">
-          <p className="text-[10px] text-blue-400">
+        <div className="border-t border-white/10 p-4 text-center">
+          <p className="text-[10px] text-gray-500">
             &copy; {new Date().getFullYear()} Lions Club Le Cripte ODV
           </p>
         </div>

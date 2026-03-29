@@ -6,12 +6,16 @@
 
 /* Lions Club Brand Colors & Emil Kowalski Easing Curves */
 :root {
-  --lions-navy: #003366;
-  --lions-gold: #C8A951;
-  --lions-light-gold: #F5E6B8;
+  --lions-navy: #00338D;
+  --lions-dark-navy: #002244;
+  --lions-gold: #EBB700;
+  --lions-light-gold: #FFF3CC;
   --lions-white: #FFFFFF;
-  --lions-light-gray: #F8F9FA;
+  --lions-light-gray: #F5F5F5;
   --lions-dark-text: #1a1a2e;
+  --lions-gray: #766A62;
+  --lions-purple: #622567;
+  --lions-light-blue: #407CCA;
 
   /* Emil Kowalski Custom Easing Curves */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
@@ -273,7 +277,7 @@ p {
 
 @media (hover: hover) and (pointer: fine) {
   .btn-primary:hover {
-    background-color: #B3943E;
+    background-color: #D4A500;
   }
 }
 
@@ -285,7 +289,7 @@ p {
 
 @media (hover: hover) and (pointer: fine) {
   .btn-secondary:hover {
-    background-color: #002244;
+    background-color: #001a33;
   }
 }
 
@@ -357,7 +361,7 @@ p {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: linear-gradient(135deg, #003366 0%, #1a4d7a 50%, #003366 100%);
+  background: linear-gradient(135deg, #00338D 0%, #1a4d7a 50%, #00338D 100%);
 }
 
 .hero::before {
@@ -365,8 +369,8 @@ p {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 20% 50%, rgba(200, 169, 81, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(200, 169, 81, 0.1) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(235, 183, 0, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(235, 183, 0, 0.1) 0%, transparent 50%);
   z-index: 1;
 }
 
@@ -375,8 +379,8 @@ p {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(45deg, transparent 30%, rgba(200, 169, 81, 0.05) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(200, 169, 81, 0.03) 50%, transparent 70%);
+    linear-gradient(45deg, transparent 30%, rgba(235, 183, 0, 0.05) 50%, transparent 70%),
+    linear-gradient(-45deg, transparent 30%, rgba(235, 183, 0, 0.03) 50%, transparent 70%);
   z-index: 2;
   pointer-events: none;
 }
@@ -394,7 +398,7 @@ p {
   display: inline-block;
   width: 100px;
   height: 100px;
-  background: linear-gradient(135deg, var(--lions-gold) 0%, #B3943E 100%);
+  background: linear-gradient(135deg, var(--lions-gold) 0%, #D4A500 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -402,7 +406,7 @@ p {
   font-size: 3.5rem;
   font-weight: 900;
   color: var(--lions-navy);
-  box-shadow: 0 12px 32px rgba(200, 169, 81, 0.25),
+  box-shadow: 0 12px 32px rgba(235, 183, 0, 0.25),
               inset 0 1px 0 rgba(255, 255, 255, 0.3);
   margin-bottom: 2rem;
 }
@@ -469,16 +473,16 @@ p {
 
 /* Glass morphism effect for header */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.97);
   backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(200, 169, 81, 0.2);
+  border-bottom: 1px solid rgba(235, 183, 0, 0.15);
 }
 
 /* Divider accent */
 .accent-divider {
   width: 60px;
   height: 4px;
-  background: linear-gradient(90deg, var(--lions-gold) 0%, #B3943E 100%);
+  background: linear-gradient(90deg, var(--lions-gold) 0%, #D4A500 100%);
   border-radius: 2px;
   margin: 0 auto 2rem;
 }

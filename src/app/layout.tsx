@@ -31,7 +31,7 @@ export default function RootLayout({
     <html lang="it" className={`${inter.variable} ${playfair.variable}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#003366" />
+        <meta name="theme-color" content="#00338D" />
       </head>
       <body className={`${inter.className} flex flex-col min-h-screen`}>
         <ToastProvider>

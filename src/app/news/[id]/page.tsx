@@ -108,7 +108,7 @@ export default function NewsDetailPage() {
         style={{
           backgroundImage: news.image_url
             ? `url(${news.image_url})`
-            : 'linear-gradient(135deg, #003366 0%, #C8A951 100%)',
+            : 'linear-gradient(135deg, #00338D 0%, #EBB700 100%)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}

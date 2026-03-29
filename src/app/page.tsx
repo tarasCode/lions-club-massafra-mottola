@@ -205,7 +205,7 @@ export default function Home() {
           <img
             src="/lions-logo.png"
             alt="Lions Club International"
-            className="w-28 h-28 rounded-full object-cover mx-auto mb-8 animate-scale-in-up shadow-2xl border-4 border-lions-gold/50"
+            className="w-32 h-32 object-contain mx-auto mb-8 animate-scale-in-up drop-shadow-2xl"
           />
 
           {/* Main title */}
@@ -351,7 +351,7 @@ export default function Home() {
                     style={{
                       backgroundImage: item.image_url
                         ? `url(${item.image_url})`
-                        : 'linear-gradient(135deg, #003366 0%, #C8A951 100%)',
+                        : 'linear-gradient(135deg, #00338D 0%, #EBB700 100%)',
                       backgroundSize: 'cover',
                       backgroundPosition: 'center',
                     }}
