@@ -131,11 +131,8 @@ export default function NewsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Gestione Notizie</h1>
-          <p className="text-gray-600 mt-1">Gestisci tutte le notizie del sito</p>
-        </div>
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <h1 className="text-3xl font-bold text-gray-800 text-center flex-1">Gestione Notizie</h1>
         <Link
           href="/area-riservata/news/nuovo"
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"

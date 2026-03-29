@@ -58,10 +58,12 @@ export default function DocumentsPage() {
   const [showNewYearModal, setShowNewYearModal] = useState(false);
   const [newYear, setNewYear] = useState(new Date().getFullYear());
   const [previewDoc, setPreviewDoc] = useState<Document | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
   const [renamingFolder, setRenamingFolder] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const [showNewFolderFor, setShowNewFolderFor] = useState<number | null>(null);
   const [newFolderName, setNewFolderName] = useState('');
+  const [folderFilter, setFolderFilter] = useState('');
 
   const supabase = createClient();
   const { showToast, showConfirm } = useToast();
@@ -139,11 +141,9 @@ export default function DocumentsPage() {
           }
         });
 
-        yearFolder.categories.sort((a, b) => {
-          const aIdx = categories?.findIndex(c => c.id === a.category.id) ?? 0;
-          const bIdx = categories?.findIndex(c => c.id === b.category.id) ?? 0;
-          return aIdx - bIdx;
-        });
+        yearFolder.categories.sort((a, b) =>
+          a.category.name.localeCompare(b.category.name, 'it')
+        );
       });
 
       const sortedFolders = Array.from(foldersByYear.values())
@@ -161,6 +161,21 @@ export default function DocumentsPage() {
   useEffect(() => {
     fetchDocuments();
   }, [fetchDocuments]);
+
+  // Load preview URL when preview document changes
+  useEffect(() => {
+    if (!previewDoc) {
+      setPreviewUrl('');
+      return;
+    }
+    let cancelled = false;
+    getDocUrl(previewDoc).then(url => {
+      if (!cancelled) setPreviewUrl(url);
+    }).catch(() => {
+      if (!cancelled) setPreviewUrl('');
+    });
+    return () => { cancelled = true; };
+  }, [previewDoc]);
 
   const toggleFolder = (folderId: string) => {
     const newExpanded = new Set(expandedFolders);
@@ -199,23 +214,6 @@ export default function DocumentsPage() {
     return created!.id;
   };
 
-  /**
-   * Converts a File to base64 string
-   */
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const result = reader.result as string;
-        // Remove the data:xxx;base64, prefix
-        const base64 = result.split(',')[1];
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleUploadDocument = useCallback(async (
     e: React.ChangeEvent<HTMLInputElement>,
     catFolder: CategoryFolder,
@@ -224,9 +222,9 @@ export default function DocumentsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Limit file size to 5MB for DB storage
-    if (file.size > 5 * 1024 * 1024) {
-      showToast('error', 'Il file è troppo grande. Dimensione massima: 5MB');
+    // Limit file size to 50MB for Supabase Storage
+    if (file.size > 50 * 1024 * 1024) {
+      showToast('error', 'Il file è troppo grande. Dimensione massima: 50MB');
       e.target.value = '';
       return;
     }
@@ -239,32 +237,47 @@ export default function DocumentsPage() {
         ? catFolder.realFolderId
         : await ensureFolderExists(year, catFolder.category.id);
 
-      // 2. Convert file to base64
-      const base64Data = await fileToBase64(file);
       const fileExt = file.name.split('.').pop()?.toUpperCase() || 'FILE';
 
-      // 3. Get user
+      // 2. Get user
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
       if (!user) throw new Error('Non autenticato');
 
-      // 4. Insert into DB with file_data (base64 in DB, no storage bucket)
+      // 3. Upload to Supabase Storage bucket "documents"
+      const timestamp = Date.now();
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const storagePath = `${year}/${catFolder.category.slug}/${timestamp}_${safeName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('documents')
+        .upload(storagePath, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // 4. Insert into DB with file_url pointing to storage path
       const { error: insertError } = await supabase.from('documents').insert([
         {
           name: file.name,
           description: '',
-          file_url: '', // no longer using storage
+          file_url: storagePath,
           file_type: fileExt,
           file_size: file.size,
           folder_id: realFolderId,
           uploaded_by: user.id,
-          file_data: base64Data,
         },
       ]);
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        // Rollback: remove from storage if DB insert fails
+        await supabase.storage.from('documents').remove([storagePath]);
+        throw insertError;
+      }
 
       showToast('success', 'Documento caricato con successo');
       fetchDocuments();
@@ -277,18 +290,24 @@ export default function DocumentsPage() {
     }
   }, [supabase, fetchDocuments, showToast]);
 
-  const handleDeleteDocument = useCallback((docId: string) => {
+  const handleDeleteDocument = useCallback((doc: Document) => {
     showConfirm('Sei sicuro di voler eliminare questo documento?', async () => {
       try {
-        setDeleting(docId);
+        setDeleting(doc.id);
+
+        // Remove from Supabase Storage if file_url is a storage path
+        if (doc.file_url && !doc.file_url.startsWith('data:') && doc.file_url !== '') {
+          await supabase.storage.from('documents').remove([doc.file_url]);
+        }
+
         const { error } = await supabase
           .from('documents')
           .delete()
-          .eq('id', docId);
+          .eq('id', doc.id);
 
         if (error) throw error;
 
-        if (previewDoc?.id === docId) setPreviewDoc(null);
+        if (previewDoc?.id === doc.id) setPreviewDoc(null);
         showToast('success', 'Documento eliminato con successo');
         fetchDocuments();
       } catch (error) {
@@ -359,16 +378,20 @@ export default function DocumentsPage() {
       : `Sei sicuro di voler eliminare la cartella "${catFolder.category.name}"?`;
     showConfirm(msg, async () => {
       try {
-        // Delete all documents in the folder first
-        if (catFolder.realFolderId) {
-          await supabase.from('documents').delete().eq('folder_id', catFolder.realFolderId);
-          await supabase.from('document_folders').delete().eq('id', catFolder.realFolderId);
-        }
+        // Delete the category — FK cascades will delete document_folders and documents automatically
+        const { error: catError, count } = await supabase
+          .from('document_categories')
+          .delete()
+          .eq('id', catFolder.category.id)
+          .select('id', { count: 'exact', head: true });
+
+        if (catError) throw new Error(`Errore eliminazione categoria: ${catError.message}`);
+
         showToast('success', 'Cartella eliminata');
-        fetchDocuments();
-      } catch (error) {
+        await fetchDocuments();
+      } catch (error: any) {
         console.error('Errore nell\'eliminazione della cartella:', error);
-        showToast('error', 'Errore nell\'eliminazione della cartella');
+        showToast('error', error?.message || 'Errore nell\'eliminazione della cartella');
       }
     });
   }, [supabase, showConfirm, showToast, fetchDocuments]);
@@ -423,35 +446,56 @@ export default function DocumentsPage() {
 
   const canPreview = (doc: Document) => {
     const type = doc.file_type.toLowerCase();
-    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf'].includes(type) && !!doc.file_data;
+    const hasFile = !!doc.file_url || !!doc.file_data;
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'pdf'].includes(type) && hasFile;
   };
 
   /**
-   * Build a data URL from base64 file_data for previewing/downloading
+   * Get a viewable URL for a document.
+   * Supports both legacy base64 (file_data) and new Supabase Storage (file_url).
    */
-  const getDataUrl = (doc: Document): string => {
-    if (!doc.file_data) return '';
-    const type = doc.file_type.toLowerCase();
-    let mime = 'application/octet-stream';
-    if (['jpg', 'jpeg'].includes(type)) mime = 'image/jpeg';
-    else if (type === 'png') mime = 'image/png';
-    else if (type === 'gif') mime = 'image/gif';
-    else if (type === 'webp') mime = 'image/webp';
-    else if (type === 'svg') mime = 'image/svg+xml';
-    else if (type === 'pdf') mime = 'application/pdf';
-    else if (type === 'txt') mime = 'text/plain';
-    return `data:${mime};base64,${doc.file_data}`;
+  const getDocUrl = async (doc: Document): Promise<string> => {
+    // Legacy base64 support
+    if (doc.file_data) {
+      const type = doc.file_type.toLowerCase();
+      let mime = 'application/octet-stream';
+      if (['jpg', 'jpeg'].includes(type)) mime = 'image/jpeg';
+      else if (type === 'png') mime = 'image/png';
+      else if (type === 'gif') mime = 'image/gif';
+      else if (type === 'webp') mime = 'image/webp';
+      else if (type === 'svg') mime = 'image/svg+xml';
+      else if (type === 'pdf') mime = 'application/pdf';
+      else if (type === 'txt') mime = 'text/plain';
+      return `data:${mime};base64,${doc.file_data}`;
+    }
+
+    // New: Supabase Storage signed URL
+    if (doc.file_url) {
+      const { data, error } = await supabase.storage
+        .from('documents')
+        .createSignedUrl(doc.file_url, 3600); // 1 hour expiry
+      if (error) throw error;
+      return data.signedUrl;
+    }
+
+    return '';
   };
 
-  const handleDownload = (doc: Document) => {
-    if (!doc.file_data) return;
-    const url = getDataUrl(doc);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = doc.name;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownload = async (doc: Document) => {
+    try {
+      const url = await getDocUrl(doc);
+      if (!url) return;
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = doc.name;
+      a.target = '_blank';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Errore nel download:', error);
+      showToast('error', 'Errore nel download del file');
+    }
   };
 
   if (loading) {
@@ -509,7 +553,14 @@ export default function DocumentsPage() {
         )}
 
         {/* Top button bar */}
-        <div className="flex justify-end mb-4">
+        <div className="flex items-center justify-between mb-4 gap-4">
+          <input
+            type="text"
+            placeholder="Filtra cartelle per nome..."
+            value={folderFilter}
+            onChange={(e) => setFolderFilter(e.target.value)}
+            className="flex-1 max-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+          />
           <button
             onClick={() => setShowNewYearModal(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold text-sm"
@@ -608,7 +659,9 @@ export default function DocumentsPage() {
 
                 {expandedFolders.has(`year-${yearFolder.year}`) && (
                   <div className="border-t border-gray-200">
-                    {yearFolder.categories.map(catFolder => {
+                    {yearFolder.categories.filter(catFolder =>
+                      !folderFilter || catFolder.category.name.toLowerCase().includes(folderFilter.toLowerCase())
+                    ).map(catFolder => {
                       const catKey = `cat-${yearFolder.year}-${catFolder.category.id}`;
                       return (
                         <div key={catFolder.id} className="border-b border-gray-200 last:border-b-0">
@@ -745,7 +798,7 @@ export default function DocumentsPage() {
                                             <Eye size={15} />
                                           </button>
                                         )}
-                                        {doc.file_data && (
+                                        {(doc.file_url || doc.file_data) && (
                                           <button
                                             onClick={(ev) => { ev.stopPropagation(); handleDownload(doc); }}
                                             className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
@@ -755,7 +808,7 @@ export default function DocumentsPage() {
                                           </button>
                                         )}
                                         <button
-                                          onClick={(ev) => { ev.stopPropagation(); handleDeleteDocument(doc.id); }}
+                                          onClick={(ev) => { ev.stopPropagation(); handleDeleteDocument(doc); }}
                                           disabled={deleting === doc.id}
                                           className="p-1.5 text-red-600 hover:bg-red-100 rounded transition-colors disabled:opacity-50"
                                           title="Elimina"
@@ -808,15 +861,13 @@ export default function DocumentsPage() {
               <span className="font-medium text-gray-800 truncate text-sm">{previewDoc.name}</span>
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
-              {previewDoc.file_data && (
-                <button
-                  onClick={() => handleDownload(previewDoc)}
-                  className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
-                  title="Scarica"
-                >
-                  <Download size={16} />
-                </button>
-              )}
+              <button
+                onClick={() => handleDownload(previewDoc)}
+                className="p-1.5 text-blue-600 hover:bg-blue-100 rounded transition-colors"
+                title="Scarica"
+              >
+                <Download size={16} />
+              </button>
               <button
                 onClick={() => setPreviewDoc(null)}
                 className="p-1.5 text-gray-500 hover:bg-gray-200 rounded transition-colors"
@@ -828,20 +879,24 @@ export default function DocumentsPage() {
           </div>
 
           <div className="flex-1 overflow-auto p-1">
-            {['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(
+            {!previewUrl ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              </div>
+            ) : ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(
               previewDoc.file_type.toLowerCase()
-            ) && previewDoc.file_data ? (
+            ) ? (
               <div className="flex items-center justify-center h-full p-4">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={getDataUrl(previewDoc)}
+                  src={previewUrl}
                   alt={previewDoc.name}
                   className="max-w-full max-h-full object-contain rounded"
                 />
               </div>
-            ) : previewDoc.file_type.toLowerCase() === 'pdf' && previewDoc.file_data ? (
+            ) : previewDoc.file_type.toLowerCase() === 'pdf' ? (
               <iframe
-                src={getDataUrl(previewDoc)}
+                src={previewUrl}
                 className="w-full h-full border-0"
                 title={previewDoc.name}
               />
@@ -849,14 +904,12 @@ export default function DocumentsPage() {
               <div className="flex flex-col items-center justify-center h-full text-gray-500">
                 <FileIcon size={48} className="mb-4 opacity-50" />
                 <p className="text-sm">Anteprima non disponibile</p>
-                {previewDoc.file_data && (
-                  <button
-                    onClick={() => handleDownload(previewDoc)}
-                    className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                  >
-                    Scarica il file
-                  </button>
-                )}
+                <button
+                  onClick={() => handleDownload(previewDoc)}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  Scarica il file
+                </button>
               </div>
             )}
           </div>

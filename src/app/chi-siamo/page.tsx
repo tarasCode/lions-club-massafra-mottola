@@ -89,12 +89,12 @@ export default function ChiSiamo() {
             <div className="animate-fade-in-up">
               <div className="bg-lions-navy text-white rounded-lg p-8">
                 <h3 className="text-3xl font-bold mb-4 font-serif">1917</h3>
-                <p className="text-lg mb-4 leading-relaxed">
+                <p className="text-lg mb-4 leading-relaxed text-white/90">
                   Tutto inizia a Chicago quando Melvin Jones, un giovane
                   imprenditore, propone ai suoi colleghi un nuovo ideale: un
                   club di servizio che andasse oltre gli affari personali.
                 </p>
-                <p className="text-lg leading-relaxed">
+                <p className="text-lg leading-relaxed text-white/90">
                   Il primo Lions Club viene fondato il 17 giugno 1917, dando vita
                   a quello che sarebbe diventato il movimento di servizio più grande
                   del mondo.

@@ -128,6 +128,7 @@ export default function ProfilePage() {
           .eq('id', user.id);
         if (error) throw error;
         setAvatarUrl(base64);
+        window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatarUrl: base64 } }));
         setMessage({ type: 'success', text: 'Foto profilo aggiornata' });
         setTimeout(() => setMessage(null), 3000);
         setUploadingAvatar(false);
@@ -149,6 +150,7 @@ export default function ProfilePage() {
         .eq('id', user.id);
       if (error) throw error;
       setAvatarUrl(null);
+      window.dispatchEvent(new CustomEvent('avatar-updated', { detail: { avatarUrl: null } }));
       setMessage({ type: 'success', text: 'Foto profilo rimossa' });
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {

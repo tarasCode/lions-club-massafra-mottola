@@ -25,7 +25,27 @@ export default function AdminLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const loadAvatar = async () => {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('avatar_url')
+          .eq('id', user.id)
+          .single();
+        if (profile?.avatar_url) {
+          setAvatarUrl(profile.avatar_url);
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -41,6 +61,7 @@ export default function AdminLayout({
         }
 
         setLoading(false);
+        loadAvatar();
       } catch (error) {
         console.error('Auth error:', error);
         router.push('/login');
@@ -49,6 +70,15 @@ export default function AdminLayout({
 
     checkAuth();
   }, [router]);
+
+  // Listen for avatar updates from profile page
+  useEffect(() => {
+    const handleAvatarUpdate = (e: CustomEvent) => {
+      setAvatarUrl(e.detail?.avatarUrl || null);
+    };
+    window.addEventListener('avatar-updated' as any, handleAvatarUpdate as any);
+    return () => window.removeEventListener('avatar-updated' as any, handleAvatarUpdate as any);
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -170,7 +200,7 @@ export default function AdminLayout({
             <Menu size={22} />
           </button>
 
-          {/* Current page title + subtitle */}
+          {/* Current page title */}
           <div className="flex-1 hidden md:block">
             <h2 className="text-base font-semibold text-gray-700 leading-tight">
               {pathname === '/area-riservata' && 'Dashboard Area Riservata'}
@@ -178,22 +208,21 @@ export default function AdminLayout({
               {pathname.startsWith('/area-riservata/documenti') && 'Archivio Documenti'}
               {pathname.startsWith('/area-riservata/profilo') && 'Il Mio Profilo'}
             </h2>
-            <p className="text-xs text-gray-400 leading-tight">
-              {pathname === '/area-riservata' && 'Benvenuto nella sezione amministrativa'}
-              {pathname.startsWith('/area-riservata/news') && 'Crea, modifica e pubblica le notizie del club'}
-              {pathname.startsWith('/area-riservata/documenti') && 'Gestisci i documenti per anno e categoria (max 5MB per file)'}
-              {pathname.startsWith('/area-riservata/profilo') && 'Gestisci le tue informazioni personali'}
-            </p>
           </div>
 
           {/* Profile icon with dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-              className="w-9 h-9 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+              className="w-9 h-9 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors overflow-hidden"
               title="Profilo"
             >
-              <User size={18} className="text-gray-600" />
+              {avatarUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={avatarUrl} alt="Avatar" className="w-9 h-9 rounded-full object-cover" />
+              ) : (
+                <User size={18} className="text-gray-600" />
+              )}
             </button>
 
             {profileDropdownOpen && (

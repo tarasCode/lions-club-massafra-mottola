@@ -10,7 +10,7 @@ export default function Footer() {
       {/* Gold accent bar */}
       <div className="h-1 bg-lions-gold" />
 
-      <div className="container max-w-7xl mx-auto px-4 py-16">
+      <div className="container max-w-7xl mx-auto px-4 pt-20 pb-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* About Section */}
           <div className="animate-fade-in-up">

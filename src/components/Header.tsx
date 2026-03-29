@@ -65,15 +65,6 @@ export default function Header() {
             </a>
           </div>
           <div className="flex items-center gap-4">
-            {!isLoginPage && (
-              <Link
-                href="/area-riservata"
-                className="hover:text-lions-gold transition-colors flex items-center gap-1"
-              >
-                <Lock size={10} />
-                AREA RISERVATA
-              </Link>
-            )}
           </div>
         </div>
       </div>

@@ -17,6 +17,8 @@ export default function News() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchFilter, setSearchFilter] = useState('');
+  const [yearFilter, setYearFilter] = useState('');
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -63,6 +65,26 @@ export default function News() {
     }).format(date);
   };
 
+  const getYears = () => {
+    const years = new Set<string>();
+    news.forEach(item => {
+      const year = new Date(item.date).getFullYear().toString();
+      years.add(year);
+    });
+    return Array.from(years).sort((a, b) => parseInt(b) - parseInt(a));
+  };
+
+  const filteredNews = news.filter(item => {
+    const matchesSearch =
+      item.title.toLowerCase().includes(searchFilter.toLowerCase()) ||
+      item.excerpt.toLowerCase().includes(searchFilter.toLowerCase());
+
+    const itemYear = new Date(item.date).getFullYear().toString();
+    const matchesYear = !yearFilter || itemYear === yearFilter;
+
+    return matchesSearch && matchesYear;
+  });
+
   return (
     <>
       {/* Hero Banner */}
@@ -81,6 +103,46 @@ export default function News() {
       {/* News Grid */}
       <section className="section-padding bg-white">
         <div className="container max-w-7xl mx-auto px-4">
+          {/* Filter Bar */}
+          {!loading && news.length > 0 && (
+            <div className="mb-12 bg-lions-light-gray rounded-lg p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Search Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-lions-navy mb-2">
+                    Cerca
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Cerca per titolo o contenuto..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lions-gold"
+                  />
+                </div>
+
+                {/* Year Filter */}
+                <div>
+                  <label className="block text-sm font-semibold text-lions-navy mb-2">
+                    Anno
+                  </label>
+                  <select
+                    value={yearFilter}
+                    onChange={(e) => setYearFilter(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-lions-gold"
+                  >
+                    <option value="">Tutti gli anni</option>
+                    {getYears().map(year => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
           {loading ? (
             <div className="text-center py-16">
               <div className="inline-block">
@@ -105,19 +167,42 @@ export default function News() {
                 Torna a visitare presto per gli ultimi aggiornamenti
               </p>
             </div>
+          ) : filteredNews.length === 0 ? (
+            <div className="text-center py-16">
+              <Newspaper size={48} className="mx-auto text-gray-300 mb-4" />
+              <p className="text-gray-600 text-lg">
+                Nessuna notizia corrisponde ai filtri selezionati
+              </p>
+              <p className="text-gray-500 mt-2">
+                Prova a modificare i criteri di ricerca
+              </p>
+            </div>
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 stagger">
-                {news.map((item) => (
-                  <article
+                {filteredNews.map((item) => (
+                  <Link
                     key={item.id}
-                    className="card overflow-hidden group h-full flex flex-col"
+                    href={`/news/${item.id}`}
+                    className="card overflow-hidden group h-full flex flex-col no-underline cursor-pointer"
                   >
-                    {/* Image Placeholder */}
-                    <div className="h-48 bg-gradient-to-br from-lions-navy to-lions-gold rounded-lg mb-4 flex items-center justify-center text-white text-center p-4 group-hover:shadow-lg transition-all">
-                      <span className="opacity-50 font-serif text-lg">
-                        Notizia
-                      </span>
+                    {/* Image */}
+                    <div
+                      className="h-48 rounded-lg mb-4 flex items-center justify-center text-white text-center p-4 group-hover:shadow-lg transition-all relative overflow-hidden"
+                      style={{
+                        backgroundImage: item.image_url
+                          ? `url(${item.image_url})`
+                          : 'linear-gradient(135deg, #00338D 0%, #EBB700 100%)',
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                      }}
+                    >
+                      {!item.image_url && (
+                        <span className="opacity-50 font-serif text-lg relative z-10">
+                          Notizia
+                        </span>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-lions-navy/40 to-transparent" />
                     </div>
 
                     {/* Content */}
@@ -136,22 +221,19 @@ export default function News() {
                           <Calendar size={14} />
                           {formatDate(item.date)}
                         </div>
-                        <Link
-                          href={`/news/${item.id}`}
-                          className="text-lions-gold hover:text-lions-navy font-semibold text-sm transition-colors"
-                        >
+                        <span className="text-lions-gold group-hover:text-lions-navy font-semibold text-sm transition-colors">
                           Leggi →
-                        </Link>
+                        </span>
                       </div>
                     </div>
-                  </article>
+                  </Link>
                 ))}
               </div>
 
               {/* Pagination Info */}
               <div className="text-center mt-16 pt-8 border-t border-gray-200">
                 <p className="text-gray-600 mb-4">
-                  Mostrando {news.length} notizie
+                  Mostrando {filteredNews.length} {filteredNews.length === 1 ? 'notizia' : 'notizie'} {news.length > filteredNews.length ? `(di ${news.length})` : ''}
                 </p>
               </div>
             </>

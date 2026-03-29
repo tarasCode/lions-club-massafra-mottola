@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     "Lions Club, Massafra, Mottola, ODV, volontariato, servizio comunità, Puglia",
   icons: {
     icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
 };
 

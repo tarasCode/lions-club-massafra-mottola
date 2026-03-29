@@ -345,7 +345,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger">
             {latestNews.length > 0 ? (
               latestNews.map((item) => (
-                <div key={item.id} className="card card-lift overflow-hidden">
+                <Link key={item.id} href={`/news/${item.id}`} className="card card-lift overflow-hidden block no-underline cursor-pointer group">
                   <div
                     className="h-48 rounded-lg mb-6 flex items-center justify-center text-white text-center p-6 relative overflow-hidden"
                     style={{
@@ -358,7 +358,7 @@ export default function Home() {
                   >
                     <div className="absolute inset-0 bg-gradient-to-t from-lions-navy/70 to-transparent" />
                   </div>
-                  <h3 className="text-xl font-bold text-lions-navy mb-2">
+                  <h3 className="text-xl font-bold text-lions-navy mb-2 group-hover:text-lions-gold transition-colors">
                     {item.title}
                   </h3>
                   <p className="text-gray-600 text-sm mb-4 leading-relaxed">
@@ -369,14 +369,11 @@ export default function Home() {
                       <Calendar size={14} />
                       {formatDate(item.published_at)}
                     </div>
-                    <Link
-                      href="/news"
-                      className="text-lions-gold hover:text-lions-navy font-bold text-sm transition-colors duration-150"
-                    >
+                    <span className="text-lions-gold group-hover:text-lions-navy font-bold text-sm transition-colors duration-150">
                       Leggi →
-                    </Link>
+                    </span>
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               [1, 2, 3].map((item) => (
