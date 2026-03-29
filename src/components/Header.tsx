@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Lock } from 'lucide-react';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeLink, setActiveLink] = useState('');
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,12 +34,17 @@ export default function Header() {
     { href: '/contatti', label: 'Contatti' },
   ];
 
+  const isActive = (href: string) => {
+    if (href === '/') return pathname === '/';
+    return pathname.startsWith(href);
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${
         isScrolled
           ? 'glass-effect shadow-lg border-b border-lions-gold/10'
-          : 'bg-transparent'
+          : 'bg-lions-navy/40 backdrop-blur-sm'
       }`}
     >
       <div className="container max-w-7xl mx-auto px-4 py-4">
@@ -47,7 +53,6 @@ export default function Header() {
           <Link
             href="/"
             className="flex items-center gap-3 no-underline transition-transform duration-200 hover:scale-105"
-            onClick={() => setActiveLink('/')}
           >
             {/* Lions Logo Circle */}
             <div
@@ -78,12 +83,11 @@ export default function Header() {
                 className={`font-medium transition-all duration-200 relative py-2 ${
                   isScrolled
                     ? 'text-lions-dark-text hover:text-lions-gold'
-                    : 'text-white/90 hover:text-lions-light-gold'
-                } ${activeLink === link.href ? (isScrolled ? 'text-lions-gold' : 'text-lions-light-gold') : ''}`}
-                onClick={() => setActiveLink(link.href)}
+                    : 'text-white hover:text-lions-light-gold'
+                } ${isActive(link.href) ? (isScrolled ? 'text-lions-gold' : 'text-lions-light-gold') : ''}`}
               >
                 {link.label}
-                {activeLink === link.href && (
+                {isActive(link.href) && (
                   <div
                     className={`absolute bottom-0 left-0 h-0.5 w-full rounded-full transition-all duration-300 ${
                       isScrolled ? 'bg-lions-gold' : 'bg-lions-light-gold'
@@ -99,7 +103,6 @@ export default function Header() {
                   ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'
                   : 'bg-lions-gold/90 text-lions-navy hover:bg-lions-gold'
               }`}
-              onClick={() => setActiveLink('/area-riservata')}
             >
               <Lock size={16} />
               Area Riservata
@@ -128,12 +131,9 @@ export default function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => {
-                    closeMenu();
-                    setActiveLink(link.href);
-                  }}
+                  onClick={closeMenu}
                   className={`px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                    activeLink === link.href
+                    isActive(link.href)
                       ? 'bg-lions-gold/20 text-lions-gold'
                       : isScrolled
                         ? 'text-lions-dark-text hover:bg-lions-light-gray'
@@ -145,10 +145,7 @@ export default function Header() {
               ))}
               <Link
                 href="/area-riservata"
-                onClick={() => {
-                  closeMenu();
-                  setActiveLink('/area-riservata');
-                }}
+                onClick={closeMenu}
                 className={`flex items-center gap-2 px-4 py-3 rounded-lg font-medium transition-all duration-200 w-fit ${
                   isScrolled
                     ? 'bg-lions-navy text-lions-gold hover:bg-lions-gold hover:text-lions-navy'

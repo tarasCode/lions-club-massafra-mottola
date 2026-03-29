@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import {
   Home,
@@ -21,11 +21,11 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -40,19 +40,6 @@ export default function AdminLayout({
           return;
         }
 
-        setUserEmail(user.email || null);
-
-        // Get user profile
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', user.id)
-          .single();
-
-        if (!error && profile?.full_name) {
-          setUserName(profile.full_name);
-        }
-
         setLoading(false);
       } catch (error) {
         console.error('Auth error:', error);
@@ -63,10 +50,21 @@ export default function AdminLayout({
     checkAuth();
   }, [router]);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push('/login');
+    router.push('/');
   };
 
   if (loading) {
@@ -84,20 +82,32 @@ export default function AdminLayout({
     { href: '/area-riservata', label: 'Dashboard', icon: Home },
     { href: '/area-riservata/news', label: 'Gestione News', icon: Newspaper },
     { href: '/area-riservata/documenti', label: 'Archivio Documenti', icon: Archive },
-    { href: '/area-riservata/profilo', label: 'Profilo', icon: User },
   ];
 
+  const isActive = (href: string) => {
+    if (href === '/area-riservata') return pathname === '/area-riservata';
+    return pathname.startsWith(href);
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#003366] text-white transition-transform duration-300 ease-in-out ${
+        className={`fixed md:relative inset-y-0 left-0 z-50 flex flex-col w-64 bg-[#003366] text-white transition-transform duration-300 ease-in-out flex-shrink-0 ${
           mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
         {/* Logo Section */}
-        <div className="flex items-center justify-between h-20 px-6 border-b border-blue-900">
-          <h1 className="text-xl font-bold">Lions Club</h1>
+        <div className="flex items-center justify-between h-16 px-6 border-b border-blue-900">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-lions-gold flex items-center justify-center flex-shrink-0">
+              <span className="text-lions-navy font-bold text-sm font-serif">L</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-white leading-tight">Lions Club</span>
+              <span className="text-[10px] text-lions-light-gold leading-tight">Area Riservata</span>
+            </div>
+          </div>
           <button
             onClick={() => setMobileMenuOpen(false)}
             className="md:hidden text-white"
@@ -107,37 +117,37 @@ export default function AdminLayout({
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = item.icon;
+            const active = isActive(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center px-4 py-3 rounded-lg text-blue-100 hover:bg-blue-900 hover:text-white transition-colors group"
+                className={`flex items-center px-4 py-3 rounded-lg transition-colors group ${
+                  active
+                    ? 'bg-blue-900 text-white font-semibold'
+                    : 'text-blue-200 hover:bg-blue-900/50 hover:text-white'
+                }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Icon size={20} className="mr-3" />
                 <span className="flex-1">{item.label}</span>
-                <ChevronRight size={16} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                <ChevronRight
+                  size={16}
+                  className={`transition-opacity ${active ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                />
               </Link>
             );
           })}
         </nav>
 
-        {/* User Info Section */}
-        <div className="border-t border-blue-900 p-4 space-y-4">
-          <div className="px-2">
-            <p className="text-sm text-blue-200">Acceduto come</p>
-            <p className="text-sm font-semibold truncate">{userName || userEmail}</p>
-          </div>
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center justify-center px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors"
-          >
-            <LogOut size={18} className="mr-2" />
-            Esci
-          </button>
+        {/* Bottom copyright only */}
+        <div className="border-t border-blue-900 p-4 text-center">
+          <p className="text-[10px] text-blue-400">
+            &copy; {new Date().getFullYear()} Lions Club Le Cripte ODV
+          </p>
         </div>
       </aside>
 
@@ -150,36 +160,61 @@ export default function AdminLayout({
       )}
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 shadow-sm">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Header - compact, no "Area Riservata" bar */}
+        <header className="h-14 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-6 shadow-sm flex-shrink-0">
+          {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden text-gray-700 hover:text-gray-900"
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
 
-          <div className="flex-1 md:flex-none">
-            <h2 className="text-xl font-semibold text-gray-800">Area Riservata</h2>
+          {/* Current page title */}
+          <div className="flex-1">
+            <h2 className="text-base font-semibold text-gray-700 hidden md:block">
+              {pathname === '/area-riservata' && 'Dashboard'}
+              {pathname.startsWith('/area-riservata/news') && 'Gestione News'}
+              {pathname.startsWith('/area-riservata/documenti') && 'Archivio Documenti'}
+              {pathname.startsWith('/area-riservata/profilo') && 'Profilo'}
+            </h2>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <div className="text-right hidden sm:block">
-              <p className="text-sm text-gray-600">Benvenuto</p>
-              <p className="text-sm font-semibold text-gray-800">{userName || userEmail}</p>
-            </div>
+          {/* Profile icon with dropdown */}
+          <div className="relative" ref={dropdownRef}>
             <button
-              onClick={handleLogout}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-700"
-              title="Esci"
+              onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+              className="w-9 h-9 rounded-full bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-colors"
+              title="Profilo"
             >
-              <LogOut size={20} />
+              <User size={18} className="text-gray-600" />
             </button>
+
+            {profileDropdownOpen && (
+              <div className="absolute right-0 top-full mt-2 w-44 bg-white border border-gray-200 rounded-lg shadow-xl z-50 overflow-hidden">
+                <Link
+                  href="/area-riservata/profilo"
+                  onClick={() => setProfileDropdownOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <User size={16} />
+                  Profilo
+                </Link>
+                <div className="border-t border-gray-100" />
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut size={16} />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
-        {/* Content */}
+        {/* Content - single scroll */}
         <main className="flex-1 overflow-auto">
           <div className="p-4 md:p-8">
             {children}

@@ -14,11 +14,23 @@ import {
   ChevronDown,
   Award,
   Target,
+  Calendar,
 } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
+import { siteConfig } from '@/lib/siteConfig';
+
+interface NewsItem {
+  id: string;
+  title: string;
+  excerpt: string;
+  published_at: string;
+  image_url?: string;
+}
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [stats, setStats] = useState({ founded: 0, members: 0, countries: 0, beneficiaries: 0 });
+  const [latestNews, setLatestNews] = useState<NewsItem[]>([]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -27,6 +39,29 @@ export default function Home() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Fetch latest news from Supabase
+  useEffect(() => {
+    const fetchLatestNews = async () => {
+      try {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from('news')
+          .select('id, title, excerpt, published_at, image_url')
+          .eq('published', true)
+          .order('published_at', { ascending: false })
+          .limit(3);
+
+        if (!error && data) {
+          setLatestNews(data);
+        }
+      } catch (err) {
+        console.error('Error fetching news:', err);
+      }
+    };
+
+    fetchLatestNews();
   }, []);
 
   // Intersection Observer for scroll animations
@@ -74,74 +109,94 @@ export default function Home() {
       title: 'Visione Globale',
       icon: Eye,
       description: 'Leader globale nel servizio comunitario e umanitario',
+      image: siteConfig.serviceImages.visione,
     },
     {
       title: 'Gioventù & Educazione',
       icon: Zap,
       description: 'Supporto ai giovani e alle future generazioni',
+      image: siteConfig.serviceImages.gioventu,
     },
     {
       title: 'Sanità',
       icon: Heart,
       description: 'Programmi per la salute e il benessere della comunità',
+      image: siteConfig.serviceImages.sanita,
     },
     {
       title: 'Ambiente',
       icon: Globe,
       description: 'Protezione e conservazione dell\'ambiente naturale',
+      image: siteConfig.serviceImages.ambiente,
     },
     {
       title: 'Istruzione',
       icon: BookOpen,
       description: 'Promozione dell\'educazione e dello sviluppo personale',
+      image: siteConfig.serviceImages.istruzione,
     },
     {
       title: 'Comunità',
       icon: Handshake,
       description: 'Sviluppo sostenibile delle comunità locali',
+      image: siteConfig.serviceImages.comunita,
     },
     {
       title: 'Fame e Povertà',
       icon: Target,
       description: 'Lotta alla fame e riduzione della povertà',
+      image: siteConfig.serviceImages.fame,
     },
     {
       title: 'Diritti Umani',
       icon: Users,
       description: 'Protezione e promozione dei diritti umani',
+      image: siteConfig.serviceImages.diritti,
     },
   ];
 
   const achievements = [
-    { number: 1992, label: 'Anno di Fondazione', icon: '📅' },
-    { number: 60, label: 'Soci Attivi', icon: '👥' },
-    { number: 208, label: 'Paesi Aderenti', icon: '🌍' },
-    { number: 45000, label: 'Beneficiari Aiutati', icon: '❤️' },
+    { number: 1992, label: 'Anno di Fondazione' },
+    { number: 60, label: 'Soci Attivi' },
+    { number: 208, label: 'Paesi Aderenti' },
+    { number: 45000, label: 'Beneficiari Aiutati' },
   ];
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('it-IT', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }).format(date);
+  };
 
   return (
     <>
-      {/* Hero Jumbotron Section */}
+      {/* Hero Jumbotron Section with Background Image */}
       <section className="hero relative min-h-screen flex items-center justify-center overflow-hidden">
-        {/* Animated gradient background */}
+        {/* Background Image with overlay */}
         <div
           className="absolute inset-0 z-0"
           style={{
-            backgroundImage: `
-              linear-gradient(135deg, #003366 0%, #1a4d7a 25%, #003366 50%, #1a4d7a 75%, #003366 100%),
-              radial-gradient(circle at 20% 50%, rgba(200, 169, 81, 0.2) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(200, 169, 81, 0.15) 0%, transparent 50%)
-            `,
-            transform: `translateY(${scrollY * 0.5}px)`,
+            backgroundImage: `url(${siteConfig.hero.backgroundImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+            transform: `translateY(${scrollY * 0.3}px)`,
           }}
         />
-
-        {/* Geometric pattern overlay */}
-        <div className="absolute inset-0 opacity-[0.03] z-1" style={{
-          backgroundImage: `
-            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(200, 169, 81, 0.1) 35px, rgba(200, 169, 81, 0.1) 70px)
-          `,
-        }} />
+        {/* Dark overlay for readability */}
+        <div className="absolute inset-0 z-1 bg-lions-navy/75" />
+        {/* Gold accent radials */}
+        <div
+          className="absolute inset-0 z-2 pointer-events-none"
+          style={{
+            background: `
+              radial-gradient(circle at 20% 50%, rgba(200, 169, 81, 0.15) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(200, 169, 81, 0.1) 0%, transparent 50%)
+            `,
+          }}
+        />
 
         {/* Hero content */}
         <div className="hero-content relative z-10 px-4 sm:px-6 lg:px-8 text-center max-w-4xl">
@@ -152,25 +207,24 @@ export default function Home() {
 
           {/* Main title */}
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white mb-4 animate-fade-in-up font-serif tracking-tight">
-            LIONS CLUB
+            {siteConfig.hero.title}
           </h1>
 
           {/* Subtitle */}
           <p className="text-2xl sm:text-3xl text-lions-light-gold mb-6 font-serif animate-fade-in-up font-bold">
-            Massafra-Mottola "Le Cripte" ODV
+            {siteConfig.hero.subtitle}
           </p>
 
           {/* Tagline */}
           <div className="h-1 w-32 bg-gradient-to-r from-lions-gold to-lions-light-gold mx-auto mb-8 animate-fade-in-up" />
 
           <p className="text-xl sm:text-2xl text-lions-light-gold mb-4 font-serif animate-fade-in-up italic">
-            "Noi Serviamo" - We Serve
+            {siteConfig.hero.motto}
           </p>
 
           {/* Description */}
           <p className="text-lg sm:text-xl text-white/90 mb-12 max-w-2xl mx-auto leading-relaxed animate-fade-in-up">
-            Dal 1992, impegnati nel servizio verso le comunità. Organizzazione di Volontariato dedicata
-            alla solidarietà, all'educazione e al benessere della comunità di Massafra e Mottola.
+            {siteConfig.hero.description}
           </p>
 
           {/* CTA Buttons */}
@@ -190,26 +244,31 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
+        {/* Scroll indicator with bouncing animation */}
         <div className="scroll-indicator">
-          <span className="text-sm font-medium">Scorri per continuare</span>
-          <ChevronDown className="animate-scroll-arrow" />
+          <span className="text-sm font-medium">Scorri</span>
+          <div className="scroll-arrow-container">
+            <ChevronDown className="scroll-chevron" />
+            <ChevronDown className="scroll-chevron scroll-chevron-delayed" />
+          </div>
         </div>
       </section>
 
       {/* Stats Section with Animated Counters */}
       <section className="section-padding bg-white border-t-4 border-lions-gold">
         <div className="container max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {achievements.map((achievement, index) => (
               <div
                 key={index}
                 className="text-center animate-fade-in-up"
                 style={{ animationDelay: `${index * 0.08}s` }}
               >
-                <div className="text-5xl mb-2">{achievement.icon}</div>
                 <div className="counter mb-2">
-                  {achievement.number.toLocaleString('it-IT')}
+                  {index === 0 ? stats.founded.toLocaleString('it-IT')
+                    : index === 1 ? stats.members.toLocaleString('it-IT')
+                    : index === 2 ? stats.countries.toLocaleString('it-IT')
+                    : stats.beneficiaries.toLocaleString('it-IT')}
                 </div>
                 <p className="text-lg text-lions-navy font-semibold">{achievement.label}</p>
               </div>
@@ -218,8 +277,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* I Nostri Service Highlight Section */}
-      <section className="section-padding bg-gradient-to-br from-lions-light-gray to-white" data-animate>
+      {/* Service Areas - Material Design Tiles with Background Photos */}
+      <section className="section-padding bg-lions-light-gray" data-animate>
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-lions-navy mb-4 font-serif">
@@ -231,22 +290,35 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger">
             {serviceAreas.map((area, index) => {
               const Icon = area.icon;
               return (
                 <div
                   key={index}
-                  className="card card-lift card-border-accent group"
+                  className="service-tile group"
                 >
-                  <div className="flex flex-col items-start">
-                    <div className="p-3 bg-lions-gold/10 rounded-lg mb-4 group-hover:bg-lions-gold/20 transition-colors duration-200">
-                      <Icon className="w-6 h-6 text-lions-gold group-hover:scale-110 transition-transform duration-200" />
+                  {/* Background image */}
+                  <div
+                    className="absolute inset-0 z-0 transition-transform duration-500 group-hover:scale-110"
+                    style={{
+                      backgroundImage: `url(${area.image})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+                  {/* Dark overlay */}
+                  <div className="absolute inset-0 z-1 bg-lions-navy/60 group-hover:bg-lions-navy/50 transition-colors duration-300" />
+
+                  {/* Content */}
+                  <div className="relative z-10 flex flex-col items-start h-full justify-end">
+                    <div className="p-2.5 bg-lions-gold/90 rounded-lg mb-3 shadow-lg">
+                      <Icon className="w-5 h-5 text-lions-navy" />
                     </div>
-                    <h3 className="text-lg font-bold text-lions-navy mb-2">
+                    <h3 className="text-lg font-bold text-white mb-1.5">
                       {area.title}
                     </h3>
-                    <p className="text-gray-600 text-sm leading-relaxed">
+                    <p className="text-white/80 text-sm leading-relaxed">
                       {area.description}
                     </p>
                   </div>
@@ -257,8 +329,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* News Section */}
-      <section className="section-padding bg-lions-light-gray" data-animate>
+      {/* Latest News Section - fetches from DB */}
+      <section className="section-padding bg-white" data-animate>
         <div className="container max-w-7xl mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl font-bold text-lions-navy mb-4 font-serif">
@@ -268,30 +340,66 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 stagger">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="card card-lift overflow-hidden">
-                <div className="h-48 bg-gradient-to-br from-lions-navy via-lions-gold/40 to-lions-gold rounded-lg mb-6 flex items-center justify-center text-white text-center p-6 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-t from-lions-navy/50 to-transparent" />
-                  <span className="relative text-lg font-bold">News #{item}</span>
-                </div>
-                <h3 className="text-xl font-bold text-lions-navy mb-2">
-                  Titolo della News #{item}
-                </h3>
-                <p className="text-gray-600 text-sm mb-4 leading-relaxed">
-                  Descrizione breve della notizia. Ulteriori dettagli disponibili
-                  nella sezione news completa.
-                </p>
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-                  <span className="text-xs text-gray-500 font-medium">28 Marzo 2026</span>
-                  <Link
-                    href="/news"
-                    className="text-lions-gold hover:text-lions-navy font-bold text-sm transition-colors duration-150"
+            {latestNews.length > 0 ? (
+              latestNews.map((item) => (
+                <div key={item.id} className="card card-lift overflow-hidden">
+                  <div
+                    className="h-48 rounded-lg mb-6 flex items-center justify-center text-white text-center p-6 relative overflow-hidden"
+                    style={{
+                      backgroundImage: item.image_url
+                        ? `url(${item.image_url})`
+                        : 'linear-gradient(135deg, #003366 0%, #C8A951 100%)',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
                   >
-                    Leggi →
-                  </Link>
+                    <div className="absolute inset-0 bg-gradient-to-t from-lions-navy/70 to-transparent" />
+                  </div>
+                  <h3 className="text-xl font-bold text-lions-navy mb-2">
+                    {item.title}
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                    {item.excerpt}
+                  </p>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
+                      <Calendar size={14} />
+                      {formatDate(item.published_at)}
+                    </div>
+                    <Link
+                      href="/news"
+                      className="text-lions-gold hover:text-lions-navy font-bold text-sm transition-colors duration-150"
+                    >
+                      Leggi →
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              [1, 2, 3].map((item) => (
+                <div key={item} className="card card-lift overflow-hidden">
+                  <div className="h-48 bg-gradient-to-br from-lions-navy via-lions-gold/40 to-lions-gold rounded-lg mb-6 flex items-center justify-center text-white text-center p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-t from-lions-navy/50 to-transparent" />
+                    <span className="relative text-lg font-bold">News #{item}</span>
+                  </div>
+                  <h3 className="text-xl font-bold text-lions-navy mb-2">
+                    Prossimamente
+                  </h3>
+                  <p className="text-gray-600 text-sm mb-4 leading-relaxed">
+                    Le ultime notizie del club saranno disponibili qui.
+                  </p>
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+                    <span className="text-xs text-gray-500 font-medium">In arrivo</span>
+                    <Link
+                      href="/news"
+                      className="text-lions-gold hover:text-lions-navy font-bold text-sm transition-colors duration-150"
+                    >
+                      News →
+                    </Link>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
 
           <div className="text-center mt-12">
@@ -305,13 +413,18 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="section-padding bg-lions-navy relative overflow-hidden" data-animate>
-        {/* Animated background elements */}
-        <div className="absolute inset-0 opacity-[0.08] z-0">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-lions-gold rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-lions-gold rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
-        </div>
+      {/* CTA Section with background image */}
+      <section className="section-padding relative overflow-hidden" data-animate>
+        {/* Background image */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            backgroundImage: `url(${siteConfig.ctaImage})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        />
+        <div className="absolute inset-0 z-1 bg-lions-navy/85" />
 
         <div className="container max-w-4xl mx-auto px-4 relative z-10 text-center">
           <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 font-serif animate-fade-in-up">

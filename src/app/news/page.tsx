@@ -3,12 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Calendar, Newspaper } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 interface NewsItem {
   id: string;
   title: string;
   excerpt: string;
   date: string;
+  image_url?: string;
 }
 
 export default function News() {
@@ -20,55 +22,25 @@ export default function News() {
     const fetchNews = async () => {
       try {
         setLoading(true);
-        // Try to fetch from Supabase
-        // This is a placeholder - will be replaced with actual Supabase integration
-        // when backend is set up
-        const placeholderNews: NewsItem[] = [
-          {
-            id: '1',
-            title: 'Campagna di Raccolta Fondi per l\'Educazione',
-            excerpt:
-              'Il nostro club ha lanciato una campagna per raccogliere fondi a supporto di progetti educativi nella comunità locale.',
-            date: '2026-03-20',
-          },
-          {
-            id: '2',
-            title: 'Visita del Governatore Distrettuale',
-            excerpt:
-              'Abbiamo avuto l\'onore di ospitare il Governatore Distrettuale che ha apprezzato i nostri service e ha condiviso le direttive internazionali.',
-            date: '2026-03-10',
-          },
-          {
-            id: '3',
-            title: 'Progetto Ambiente: Pulizia del Territorio',
-            excerpt:
-              'Oltre 40 soci hanno partecipato alla giornata di pulizia ambientale, raccogliendo oltre una tonnellata di rifiuti.',
-            date: '2026-02-28',
-          },
-          {
-            id: '4',
-            title: 'Nuova Iniziativa per la Sanità Comunitaria',
-            excerpt:
-              'Avvio di un nuovo progetto in collaborazione con le strutture sanitarie locali per supportare i servizi medici della comunità.',
-            date: '2026-02-15',
-          },
-          {
-            id: '5',
-            title: 'Cerimonia di Benvenuto per Nuovi Soci',
-            excerpt:
-              'Tre nuovi soci sono stati formalmente investiti come membri del Lions Club Massafra-Mottola Le Cripte durante una cerimonia solenne.',
-            date: '2026-02-01',
-          },
-          {
-            id: '6',
-            title: 'Partecipazione alla Festa Comunitaria',
-            excerpt:
-              'Il nostro club ha organizzato uno stand informativo durante la festa comunitaria locale, raggiungendo centinaia di visitatori.',
-            date: '2026-01-20',
-          },
-        ];
+        const supabase = createClient();
 
-        setNews(placeholderNews);
+        const { data, error: fetchError } = await supabase
+          .from('news')
+          .select('id, title, excerpt, published_at, image_url')
+          .eq('published', true)
+          .order('published_at', { ascending: false });
+
+        if (fetchError) throw fetchError;
+
+        const mappedNews: NewsItem[] = (data || []).map((item: any) => ({
+          id: item.id,
+          title: item.title,
+          excerpt: item.excerpt || '',
+          date: item.published_at || new Date().toISOString(),
+          image_url: item.image_url,
+        }));
+
+        setNews(mappedNews);
       } catch (err) {
         setError(
           'Impossibile caricare le notizie. Per favore, riprova più tardi.'
