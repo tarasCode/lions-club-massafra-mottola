@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/Toast';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
+
+const RichTextEditor = dynamic(() => import('@/components/RichTextEditor'), { ssr: false });
 
 interface NewsForm {
   title: string;
@@ -300,12 +303,10 @@ function NewsFormContent() {
           <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
             <h2 className="text-lg font-semibold text-gray-800">Contenuto</h2>
 
-            <textarea
-              value={form.content}
-              onChange={(e) => setForm({ ...form, content: e.target.value })}
-              placeholder="Contenuto completo della notizia"
-              rows={12}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            <RichTextEditor
+              content={form.content}
+              onChange={(html: string) => setForm({ ...form, content: html })}
+              placeholder="Scrivi il contenuto della news..."
             />
           </div>
         </div>
@@ -349,6 +350,12 @@ function NewsFormContent() {
                   <p className="text-sm text-gray-600 mt-2 line-clamp-3">
                     {form.excerpt || 'Estratto della notizia...'}
                   </p>
+                  {form.content && (
+                    <div
+                      className="prose prose-sm max-w-none mt-3 text-gray-700"
+                      dangerouslySetInnerHTML={{ __html: form.content }}
+                    />
+                  )}
                 </div>
               </div>
             )}

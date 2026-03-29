@@ -144,11 +144,52 @@ export default function NewsDetailPage() {
           )}
 
           <div
-            className="prose prose-lg max-w-none text-gray-700 leading-relaxed"
-            style={{ whiteSpace: 'pre-wrap' }}
-          >
-            {news.content || 'Contenuto non disponibile.'}
-          </div>
+            className="prose prose-lg max-w-none text-gray-700 leading-relaxed news-content"
+            dangerouslySetInnerHTML={{ __html: news.content || '<p>Contenuto non disponibile.</p>' }}
+          />
+
+          {/* Styles for rich text content */}
+          <style jsx global>{`
+            .news-content img {
+              max-width: 100%;
+              height: auto;
+              border-radius: 0.5rem;
+              margin: 1.5rem auto;
+              display: block;
+            }
+            .news-content table {
+              border-collapse: collapse;
+              width: 100%;
+              margin: 1.5rem 0;
+            }
+            .news-content td, .news-content th {
+              border: 1px solid #d1d5db;
+              padding: 0.75rem 1rem;
+              vertical-align: top;
+            }
+            .news-content th {
+              background-color: #f3f4f6;
+              font-weight: 600;
+            }
+            .news-content blockquote {
+              border-left: 3px solid #EBB700;
+              padding-left: 1rem;
+              margin: 1.5rem 0;
+              color: #4b5563;
+              font-style: italic;
+            }
+            .news-content h1 { font-size: 2rem; font-weight: 800; color: #00338D; margin: 1.5rem 0 0.75rem; }
+            .news-content h2 { font-size: 1.5rem; font-weight: 700; color: #00338D; margin: 1.5rem 0 0.75rem; }
+            .news-content h3 { font-size: 1.25rem; font-weight: 600; color: #00338D; margin: 1rem 0 0.5rem; }
+            .news-content iframe {
+              width: 100%;
+              aspect-ratio: 16/9;
+              border-radius: 0.5rem;
+              margin: 1.5rem 0;
+            }
+            .news-content a { color: #2563eb; text-decoration: underline; }
+            .news-content a:hover { color: #1d4ed8; }
+          `}</style>
 
           <div className="mt-16 pt-8 border-t border-gray-200 flex items-center justify-between">
             <Link
