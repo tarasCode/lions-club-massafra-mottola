@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Lions Club Massafra-Mottola "Le Cripte" ODV — Sito Web
 
-## Getting Started
+Sito istituzionale del **Lions Club Massafra-Mottola "Le Cripte" ODV**, un'associazione di volontariato affiliata a Lions Club International operante in provincia di Taranto (Puglia).
 
-First, run the development server:
+## Documentazione
+
+| Documento | Destinatari | Descrizione |
+|-----------|-------------|-------------|
+| [Documentazione Tecnica](docs/documentazione-tecnica.md) | Sviluppatori | Stack, architettura, installazione, API, deploy |
+| [Documentazione Funzionale](docs/documentazione-funzionale.md) | Operatori / Soci | Come usare il sistema, flussi operativi, funzionalità |
+| [Guida Non Tecnica](docs/guida-non-tecnica.md) | Tutti | Cos'è il sito e a cosa serve, in linguaggio semplice |
+
+## Quick Start
 
 ```bash
+# Installa le dipendenze
+npm install --legacy-peer-deps
+
+# Configura le variabili d'ambiente
+cp .env.example .env.local
+# Aggiungi NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+# Avvia il server di sviluppo
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Il sito sarà disponibile su [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Stack
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+- **Next.js 14** (App Router) + **TypeScript**
+- **Tailwind CSS** con palette Lions personalizzata
+- **Supabase** (database PostgreSQL + autenticazione + storage)
+- **Tiptap** per l'editor di testo ricco
+- Deploy su **Netlify**
 
-## Learn More
+## Struttura principale
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/              # Pagine (Next.js App Router)
+├── components/       # Componenti riutilizzabili
+└── lib/              # Utility, client Supabase, configurazione sito
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Per la documentazione completa, consultare la cartella [`docs/`](docs/).
